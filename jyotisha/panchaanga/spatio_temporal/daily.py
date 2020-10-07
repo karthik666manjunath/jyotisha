@@ -4,16 +4,18 @@ import logging
 import sys
 from math import floor, modf
 
+from jyotisha.panchaanga.temporal.zodiac import angas
 from scipy.optimize import brentq
 
 from jyotisha.panchaanga.spatio_temporal import City
 from jyotisha.panchaanga.temporal import interval, time, ComputationSystem, set_constants
 from jyotisha.panchaanga.temporal import zodiac
 from jyotisha.panchaanga.temporal.body import Graha
-from jyotisha.panchaanga.temporal.interval import Interval, DayLengthBasedPeriods
+from jyotisha.panchaanga.temporal.interval import Interval, DayLengthBasedPeriods, AngaSpan
 from jyotisha.panchaanga.temporal.month import LunarMonthAssigner
 from jyotisha.panchaanga.temporal.time import Timezone, Hour, Date
-from jyotisha.panchaanga.temporal.zodiac import Ayanamsha, NakshatraDivision, AngaType, AngaSpanFinder
+from jyotisha.panchaanga.temporal.zodiac import Ayanamsha, NakshatraDivision
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
 from sanskrit_data.schema import common
 
 logging.basicConfig(level=logging.DEBUG,
@@ -35,7 +37,7 @@ class DayAngas(common.JsonObject):
     self.karanas_with_ends = None
     self.raashis_with_ends = None
 
-  def find_anga(self, anga_type, anga_id):
+  def get_angas_with_ends(self, anga_type):
     anga_spans = []
     if anga_type == AngaType.NAKSHATRA:
       anga_spans = self.nakshatras_with_ends
@@ -47,7 +49,10 @@ class DayAngas(common.JsonObject):
       anga_spans = self.rashis_with_ends
     elif anga_type == AngaType.KARANA:
       anga_spans = self.karanas_with_ends
-    for anga in anga_spans:
+    return anga_spans
+
+  def find_anga(self, anga_type, anga_id):
+    for anga in self.get_angas_with_ends(anga_type=anga_type):
       if anga.name == anga_id:
         return anga
     return None
@@ -141,14 +146,19 @@ class DailyPanchaanga(common.JsonObject):
 
     if force_recomputation or self.sunrise_day_angas is None:
       self.sunrise_day_angas = DayAngas()
-      self.sunrise_day_angas.tithis_with_ends = self.get_sunrise_day_anga_spans(zodiac.AngaType.TITHI)
-      self.sunrise_day_angas.tithi_at_sunrise = self.sunrise_day_angas.tithis_with_ends[0].name
-      self.sunrise_day_angas.nakshatras_with_ends = self.get_sunrise_day_anga_spans(zodiac.AngaType.NAKSHATRA)
-      self.sunrise_day_angas.nakshatra_at_sunrise = self.sunrise_day_angas.nakshatras_with_ends[0].name
-      self.sunrise_day_angas.yogas_with_ends = self.get_sunrise_day_anga_spans(zodiac.AngaType.YOGA)
-      self.sunrise_day_angas.yoga_at_sunrise = self.sunrise_day_angas.yogas_with_ends[0].name
-      self.sunrise_day_angas.karanas_with_ends = self.get_sunrise_day_anga_spans(zodiac.AngaType.KARANA)
-      self.sunrise_day_angas.raashis_with_ends = self.get_sunrise_day_anga_spans(zodiac.AngaType.RASHI)
+      self.sunrise_day_angas.tithis_with_ends = self.get_sunrise_day_anga_spans(
+        angas.AngaType.TITHI)
+      self.sunrise_day_angas.tithi_at_sunrise = self.sunrise_day_angas.tithis_with_ends[0].anga
+      self.sunrise_day_angas.nakshatras_with_ends = self.get_sunrise_day_anga_spans(
+        angas.AngaType.NAKSHATRA)
+      self.sunrise_day_angas.nakshatra_at_sunrise = self.sunrise_day_angas.nakshatras_with_ends[0].anga
+      self.sunrise_day_angas.yogas_with_ends = self.get_sunrise_day_anga_spans(
+        angas.AngaType.YOGA)
+      self.sunrise_day_angas.yoga_at_sunrise = self.sunrise_day_angas.yogas_with_ends[0].anga
+      self.sunrise_day_angas.karanas_with_ends = self.get_sunrise_day_anga_spans(
+        angas.AngaType.KARANA)
+      self.sunrise_day_angas.raashis_with_ends = self.get_sunrise_day_anga_spans(
+        angas.AngaType.RASHI)
 
   def compute_tb_muhuurtas(self):
     """ Computes muhuurta-s according to taittiriiya brAhmaNa.
@@ -170,13 +180,13 @@ class DailyPanchaanga(common.JsonObject):
     """
     # If solar transition happens before the current sunset but after the previous sunset, then that is taken to be solar day 1.
     self.compute_sun_moon_transitions(previous_day_panchaanga=previous_day_panchaanga)
-    solar_month_sunset = NakshatraDivision(julday=self.jd_sunset, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
+    solar_month_sunset = NakshatraDivision(jd=self.jd_sunset, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
       anga_type=AngaType.SOLAR_MONTH)
 
     solar_sidereal_month_end_jd = None
     if previous_day_panchaanga is None or previous_day_panchaanga.solar_sidereal_date_sunset.day > 28 :
-      anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, anga_type=AngaType.SOLAR_MONTH)
-      solar_month_sunset_span = anga_finder.find(jd1=self.jd_sunset - 32, jd2=self.jd_sunset + 5, target_anga_id=solar_month_sunset)
+      anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, default_anga_type=AngaType.SOLAR_MONTH)
+      solar_month_sunset_span = anga_finder.find(jd1=self.jd_sunset - 32, jd2=self.jd_sunset + 5, target_anga_in=solar_month_sunset)
       solar_sidereal_month_day_sunset = len(self.city.get_sunsets_in_period(jd_start=solar_month_sunset_span.jd_start, jd_end=self.jd_sunset + 1/48.0))
       if solar_sidereal_month_day_sunset == 1 and solar_month_sunset_span.jd_start > self.jd_sunrise:
         solar_sidereal_month_end_jd = solar_month_sunset_span.jd_start
@@ -185,7 +195,7 @@ class DailyPanchaanga(common.JsonObject):
     else:
       solar_sidereal_month_day_sunset = previous_day_panchaanga.solar_sidereal_date_sunset.day + 1
     from jyotisha.panchaanga.temporal import time
-    self.solar_sidereal_date_sunset = time.BasicDateWithTransitions(month=solar_month_sunset, day=solar_sidereal_month_day_sunset, month_transition=solar_sidereal_month_end_jd)
+    self.solar_sidereal_date_sunset = time.BasicDateWithTransitions(month=solar_month_sunset.index, day=solar_sidereal_month_day_sunset, month_transition=solar_sidereal_month_end_jd)
 
   def set_tropical_date_sunset(self, previous_day_panchaanga=None):
     month_transition_jd = None
@@ -194,7 +204,7 @@ class DailyPanchaanga(common.JsonObject):
       tropical_date_sunset_month = previous_day_panchaanga.tropical_date_sunset.month
     
     if previous_day_panchaanga is None or previous_day_panchaanga.tropical_date_sunset.day > 28 :
-      nd = zodiac.NakshatraDivision(julday=self.jd_sunset, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
+      nd = zodiac.NakshatraDivision(jd=self.jd_sunset, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
       fractional_month = nd.get_fractional_division_for_body(body=Graha.singleton(Graha.SUN), anga_type=AngaType.RASHI)
       (month_fraction, _) = modf(fractional_month)
       approx_day = month_fraction*30
@@ -289,7 +299,7 @@ class DailyPanchaanga(common.JsonObject):
   
     if num_angas_today == 0:
       # The anga does not change until sunrise tomorrow
-      return [Interval(name=anga_now, jd_end=None, jd_start=None)]
+      return [AngaSpan(anga=anga_now, jd_end=None, jd_start=None)]
     else:
       lmoon = Graha.singleton(Graha.MOON).get_longitude(self.jd_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id)
   
@@ -323,14 +333,14 @@ class DailyPanchaanga(common.JsonObject):
         # bracket the function in an interval where the function
         # changes sign. Therefore, brenth can be used, as suggested
         # in the scipy documentation.
-        target = (anga_now + i - 1) % num_angas + 1
+        target = anga_now + 1
   
         # Approximate error in calculation of end time -- arbitrary
         # used to bracket the root, for brenth
         TDELTA = 0.05
         try:
           def f(x):
-            return NakshatraDivision(x, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga_float(anga_type=anga_type) - target
+            return NakshatraDivision(x, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga_float(anga_type=anga_type) - target.index
   
           # noinspection PyTypeChecker
           t_act = brentq(f, x0 - TDELTA, x0 + TDELTA)
@@ -338,7 +348,7 @@ class DailyPanchaanga(common.JsonObject):
           logging.debug('Unable to bracket! Using approximate t_end itself.')
           # logging.warning(locals())
           t_act = approx_end
-        angas_list.extend([Interval(name=(anga_now + i - 1) % num_angas + 1, jd_end=t_act, jd_start=None)])
+        angas_list.extend([AngaSpan(anga=anga_now + i, jd_end=t_act, jd_start=None)])
     return angas_list
 
 

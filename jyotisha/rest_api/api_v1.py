@@ -9,7 +9,8 @@ from jyotisha.panchaanga.spatio_temporal import City, daily, annual
 from jyotisha.panchaanga.temporal import festival
 from jyotisha.panchaanga.temporal.time import Timezone, Date
 from jyotisha.panchaanga.temporal.body import Graha
-from jyotisha.panchaanga.temporal.zodiac import NakshatraDivision, Ayanamsha, AngaType
+from jyotisha.panchaanga.temporal.zodiac import NakshatraDivision, Ayanamsha
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
 
 logging.basicConfig(
   level=logging.DEBUG,
@@ -79,7 +80,7 @@ class KaalaHandler(Resource):
 class DivisionFinder(Resource):
   def get(self, body_name, anga_type_str, timezone, year, month, day, hour, minute, second):
     julday = Timezone(timezone).local_time_to_julian_day(Date(year, month, day, hour, minute, second))
-    nd = NakshatraDivision(julday=julday, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
+    nd = NakshatraDivision(jd=julday, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
     body = Graha(body_name=body_name)
     anga_type = AngaType.NAKSHATRA
     if anga_type_str == AngaType.RASHI.name:

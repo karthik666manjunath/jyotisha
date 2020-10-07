@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 from math import floor
 
+import jyotisha.panchaanga.temporal.zodiac.angas
 from pytz import timezone as tz
 from scipy.optimize import brentq
 
@@ -10,6 +11,7 @@ from jyotisha import names
 from jyotisha.panchaanga import temporal
 from jyotisha.panchaanga.temporal import time
 from jyotisha.panchaanga.temporal import zodiac, tithi
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
 from jyotisha.panchaanga.temporal.body import Graha
 from jyotisha.panchaanga.temporal.festival import FestivalInstance
 from jyotisha.panchaanga.temporal.festival.applier import FestivalAssigner
@@ -152,7 +154,7 @@ class TithiFestivalAssigner(FestivalAssigner):
         self.add_festival(festival_name, d)
 
       if NakshatraDivision(self.daily_panchaangas[d].jd_sunrise, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-          zodiac.AngaType.NAKSHATRA_PADA) == 49 and \
+          AngaType.NAKSHATRA_PADA) == 49 and \
           self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise == 7:
         self.add_festival('bhadrA~saptamI', d)
 
@@ -259,7 +261,7 @@ class TithiFestivalAssigner(FestivalAssigner):
           if ekaadashii_paksha == 'shukla':
             def f(x):
               tp_float = NakshatraDivision(x, ayanaamsha_id=self.ayanaamsha_id).get_anga_float(
-                zodiac.AngaType.TITHI_PADA)
+                AngaType.TITHI_PADA)
               return tp_float - 45
             harivasara_end = brentq(
               f,
@@ -268,7 +270,7 @@ class TithiFestivalAssigner(FestivalAssigner):
           else:
             def f(x):
               tp_float = NakshatraDivision(x, ayanaamsha_id=self.ayanaamsha_id).get_anga_float(
-                zodiac.AngaType.TITHI_PADA)
+                AngaType.TITHI_PADA)
               return tp_float - 105
             harivasara_end = brentq(
               f,
@@ -321,7 +323,7 @@ class TithiFestivalAssigner(FestivalAssigner):
               continue
             if (t12 % 15) == 11:
               if NakshatraDivision(t12_end, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-                  zodiac.AngaType.NAKSHATRA) == 22:
+                  AngaType.NAKSHATRA) == 22:
                 if (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 12 and (self.daily_panchaangas[d + 1].sunrise_day_angas.tithi_at_sunrise % 15) == 12:
                   self.add_festival('vijayA/zravaNa-mahAdvAdazI', d)
                 elif (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 12:
@@ -330,7 +332,7 @@ class TithiFestivalAssigner(FestivalAssigner):
                   self.add_festival('vijayA/zravaNa-mahAdvAdazI', d + 1)
             if (t12 % 15) == 12:
               if NakshatraDivision(t12_end, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-                  zodiac.AngaType.NAKSHATRA) == 22:
+                  AngaType.NAKSHATRA) == 22:
                 if (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 12 and (self.daily_panchaangas[d + 1].sunrise_day_angas.tithi_at_sunrise % 15) == 12:
                   self.add_festival('vijayA/zravaNa-mahAdvAdazI', d)
                 elif (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 12:
@@ -418,13 +420,13 @@ class TithiFestivalAssigner(FestivalAssigner):
       # Sravanam, Asvini, Avittam, Tiruvadirai or Ayilyam, occurs, then it is called ‘Vyatipatam’.
       # This Vyatipata yoga is equal to a hundred Surya grahanas in merit.”
       tithi_sunset = NakshatraDivision(self.daily_panchaangas[d].jd_sunset, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-        zodiac.AngaType.TITHI)
+        AngaType.TITHI)
       if self.daily_panchaangas[d].date.get_weekday() == 0 and (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise == 30 or tithi_sunset == 30):
         # AMAVASYA on a Sunday
         if (self.daily_panchaangas[d].sunrise_day_angas.nakshatra_at_sunrise in [1, 6, 9, 22, 23] and self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise == 30) or \
             (tithi_sunset == 30 and NakshatraDivision(self.daily_panchaangas[d].jd_sunset,
                                                       ayanaamsha_id=self.ayanaamsha_id).get_anga(
-              zodiac.AngaType.NAKSHATRA) in [
+              AngaType.NAKSHATRA) in [
                1, 6, 9, 22, 23]):
           festival_name = 'vyatIpAta-yOgaH (alabhyam)'
           self.add_festival(festival_name, d)
@@ -453,12 +455,12 @@ class TithiFestivalAssigner(FestivalAssigner):
       # VARUNI TRAYODASHI
       if self.daily_panchaangas[d].lunar_month_sunrise == 12 and self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise == 28:
         if NakshatraDivision(self.daily_panchaangas[d].jd_sunrise, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-            zodiac.AngaType.NAKSHATRA) == 24:
+            AngaType.NAKSHATRA) == 24:
           vtr_name = 'vAruNI~trayOdazI'
           if self.daily_panchaangas[d].date.get_weekday() == 6:
             vtr_name = 'mahA' + vtr_name
             if NakshatraDivision(self.daily_panchaangas[d].jd_sunrise, ayanaamsha_id=self.ayanaamsha_id).get_anga(
-                zodiac.AngaType.NAKSHATRA) == 23:
+                AngaType.NAKSHATRA) == 23:
               vtr_name = 'mahA' + vtr_name
           self.add_festival(vtr_name, d)
 
