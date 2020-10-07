@@ -40,7 +40,7 @@ def compute_calendar(panchaanga, scripts=[sanscript.DEVANAGARI], all_tags=True, 
   DATA_ROOT = os.path.join(os.path.dirname(festival.__file__), "data")
 
   rules_collection = rules.RulesCollection.get_cached(repos=tuple(panchaanga.computation_system.options.fest_repos))
-  fest_details_dict = rules_collection.all
+  fest_details_dict = rules_collection.name_to_rule
 
   ics_calendar = Calendar()
   # uid_list = []

@@ -8,8 +8,7 @@ from jyotisha.panchaanga.temporal import time
 from jyotisha.panchaanga.temporal import zodiac
 from jyotisha.panchaanga.temporal.festival import rules
 from jyotisha.panchaanga.temporal.interval import Interval
-from jyotisha.panchaanga.temporal.zodiac import angas
-from jyotisha.panchaanga.temporal.zodiac.angas import AngaType, Anga, NAME_TO_TYPE
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType, Anga
 from sanskrit_data.schema import common
 
 DATA_ROOT = os.path.join(os.path.dirname(festival.__file__), "data")
@@ -300,7 +299,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
         lunar_y_start_d.append(d)
 
     period_start_year = self.panchaanga.start_date.year
-    festival_rules_all = self.rules_collection.all
+    festival_rules_all = self.rules_collection.name_to_rule
     for festival_name in festival_rules_all:
       if festival_name in self.panchaanga.festival_id_to_days and festival_rules_all[festival_name].timing.year_start is not None:
         fest_start_year = festival_rules_all[festival_name].timing.year_start
