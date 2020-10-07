@@ -4,6 +4,7 @@ import logging
 import sys
 from math import floor, modf
 
+from jyotisha.panchaanga.temporal.festival import rules
 from jyotisha.panchaanga.temporal.zodiac import angas
 from scipy.optimize import brentq
 
@@ -107,6 +108,9 @@ class DailyPanchaanga(common.JsonObject):
     if computation_system.lunar_month_assigner_type is not None:
       lunar_month_assigner = LunarMonthAssigner.get_assigner(computation_system=computation_system)
       self.set_lunar_month_sunrise(month_assigner=lunar_month_assigner, previous_day_panchaanga=previous_day_panchaanga)
+
+    # if len(computation_system.options.fest_repos) > 0:
+    #   self.assign_festivals(previous_day_panchaanga=previous_day_panchaanga, no_next_day_lookup=True)
 
 
   def __lt__(self, other):
@@ -350,6 +354,12 @@ class DailyPanchaanga(common.JsonObject):
           t_act = approx_end
         angas_list.extend([AngaSpan(anga=anga_now + i, jd_end=t_act, jd_start=None)])
     return angas_list
+
+  def assign_festivals(self, previous_day_panchaanga, no_next_day_lookup=True):
+    rules_collection = rules.RulesCollection.get_cached(repos=tuple(self.computation_system.options.fest_repos))
+    fest_details_dict = rules_collection.name_to_rule
+    for tithi_spans in self.sunrise_day_angas.tithis_with_ends:
+      pass
 
 
 # Essential for depickling to work.

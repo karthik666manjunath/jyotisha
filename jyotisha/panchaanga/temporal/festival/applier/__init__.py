@@ -35,9 +35,9 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
         self.panchaanga.festival_id_to_days[festival_name].append(self.daily_panchaangas[d].date)
     else:
       self.panchaanga.festival_id_to_days[festival_name] = [self.daily_panchaangas[d].date]
-
+  
   @timebudget
-  def assign_festivals_from_rules(self, festival_rules, debug_festivals=False):
+  def assign_festivals_from_rules(self, festival_rules):
     for d in range(1, self.panchaanga.duration + 1):
       [y, m, dt, t] = time.jd_to_utc_gregorian(self.panchaanga.jd_start + d - 1).to_date_fractional_hour_tuple()
 
@@ -80,7 +80,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     anga_type = fest_rule.timing.anga_type
     anga_num = fest_rule.timing.anga_number
     if month_type is None or month_num is None or anga_type is None or anga_num is None:
-      raise ValueError(str(fest_rule))
+      return 
 
     if anga_type == 'tithi' and month_type == 'lunar_month' and anga_num == 1:
       # Shukla prathama tithis need to be dealt carefully, if e.g. the prathama tithi
@@ -260,10 +260,10 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
           # It is possible that the previous tithi may span two sunrises. Then, offset computed will be None. We would have better luck the next day though.
           pass
         else:
-          if festival_name in self.panchaanga.festival_id_to_days and self.panchaanga.festival_id_to_days[festival_name].count(self.daily_panchaangas[d + offset-1].date) == 0:
+          if not (festival_name in self.panchaanga.festival_id_to_days and self.panchaanga.festival_id_to_days[festival_name].count(self.daily_panchaangas[d + offset-1].date) > 0):
             # Check if yesterday was assigned already
             # to this puurvaviddha festival!
-            fday = fday + offset
+            fday = d + offset
           else:
             if festival_name not in self.panchaanga.festival_id_to_days and angas != [prev_anga] * 4:
               logging.debug('Special case: %s; angas = %s' % (festival_name, str(angas)))
@@ -361,16 +361,16 @@ class MiscFestivalAssigner(FestivalAssigner):
 
 
   def assign_all(self, debug=False):
-    self.assign_agni_nakshatra(debug_festivals=debug)
+    self.assign_agni_nakshatra()
     # ASSIGN ALL FESTIVALS FROM adyatithi submodule
     # festival_rules = get_festival_rules_dict(os.path.join(CODE_ROOT, 'panchaanga/data/festival_rules_test.json'))
-    festival_rules = {**self.rules_collection.sidereal_solar, **self.rules_collection.lunar}
+    festival_rules = self.rules_collection.name_to_rule
 
     assert "tripurOtsavaH" in festival_rules
-    self.assign_festivals_from_rules(festival_rules, debug_festivals=debug)
+    self.assign_festivals_from_rules(festival_rules)
     
 
-  def assign_agni_nakshatra(self, debug_festivals=False):
+  def assign_agni_nakshatra(self):
     agni_jd_start = agni_jd_end = None
     for d in range(1, self.panchaanga.duration + 1):
       [y, m, dt, t] = time.jd_to_utc_gregorian(self.panchaanga.jd_start + d - 1).to_date_fractional_hour_tuple()
@@ -409,11 +409,13 @@ class MiscFestivalAssigner(FestivalAssigner):
       #                                        ((self.panchaanga.weekday_start - 1 + self.panchaanga.festival_id_to_days['yajurvEda-upAkarma'][
       #                                            0] - 5) % 7)]
 
-    relative_festival_rules = self.rules_collection.relative
+    name_to_rule = self.rules_collection.name_to_rule
 
-    for festival_name in relative_festival_rules:
-      offset = int(relative_festival_rules[festival_name].timing.offset)
-      rel_festival_name = relative_festival_rules[festival_name].timing.anchor_festival_id
+    for festival_name in name_to_rule:
+      if name_to_rule[festival_name].timing is None or name_to_rule[festival_name].timing.offset is None:
+        continue
+      offset = int(name_to_rule[festival_name].timing.offset)
+      rel_festival_name = name_to_rule[festival_name].timing.anchor_festival_id
       if rel_festival_name not in self.panchaanga.festival_id_to_days:
         # Check approx. match
         matched_festivals = []
