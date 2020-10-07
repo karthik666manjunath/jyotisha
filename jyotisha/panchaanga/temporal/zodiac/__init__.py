@@ -149,7 +149,7 @@ class NakshatraDivision(common.JsonObject):
     anga_objects = [AngaType.TITHI, AngaType.TITHI_PADA, AngaType.NAKSHATRA, AngaType.NAKSHATRA_PADA, AngaType.RASHI,
                     AngaType.SOLAR_MONTH, AngaType.SOLAR_NAKSH, AngaType.YOGA, AngaType.KARANA]
     angas = list(map(lambda anga_object: self.get_anga(anga_type=anga_object), anga_objects))
-    anga_ids = list(map(lambda anga_obj: anga_obj.name, anga_objects))
+    anga_ids = list(map(lambda anga_obj: anga_obj.index, anga_objects))
     return dict(list(zip(anga_ids, angas)))
 
   def get_nakshatra(self):

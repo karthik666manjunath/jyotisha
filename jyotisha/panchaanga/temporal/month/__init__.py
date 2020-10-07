@@ -89,13 +89,13 @@ class SolsticePostDark10AdhikaAssigner(LunarMonthAssigner):
   @classmethod
   def _get_solstice_lunar_month(cls, solstice_tropical_month_span):
     if not cls._is_tithi_post_dark10(jd=solstice_tropical_month_span.jd_start):
-      return solstice_tropical_month_span.name 
+      return solstice_tropical_month_span.anga 
     else:
       prev_solstice_tropical_month_span = zodiac.get_previous_solstice(jd=solstice_tropical_month_span.jd_start-1)
       # Was there an adhika maasa in the recent past?
       # If so, this month will not be one, even if post-dark10 solsticial. 
       if not cls._is_tithi_post_dark10(jd=prev_solstice_tropical_month_span.jd_start):
-        return solstice_tropical_month_span.name + 0.5
+        return solstice_tropical_month_span.anga + 0.5
       else:
         prev_solstice_lunar_month = cls._get_solstice_lunar_month(solstice_tropical_month_span=prev_solstice_tropical_month_span)
         lunar_month = cls._month_from_previous_jd_month(jd=solstice_tropical_month_span.jd_start, prev_jd=prev_solstice_tropical_month_span.jd_start, prev_jd_month=prev_solstice_lunar_month )

@@ -2,9 +2,8 @@
 import logging
 import sys
 
-from jyotisha.panchaanga.temporal import time
-from jyotisha.panchaanga import temporal
 from jyotisha.panchaanga.temporal import PeriodicPanchaangaApplier, interval
+from jyotisha.panchaanga.temporal import time
 from jyotisha.panchaanga.temporal.zodiac import Anga, AngaType
 from sanskrit_data.schema import common
 
@@ -215,7 +214,7 @@ class TithiAssigner(PeriodicPanchaangaApplier):
             if debug_shraaddha_tithi:
               logging.debug('Note %s' % str(tithi_days[m][t]))
           else:
-            daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI)]  # Shunya
+            daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI.name)]  # Shunya
             if debug_shraaddha_tithi:
               logging.debug('Removed %d' % tithi_days[m][t][0])
             del tithi_days[m][t][0]
@@ -226,12 +225,12 @@ class TithiAssigner(PeriodicPanchaangaApplier):
           if debug_shraaddha_tithi:
             logging.debug('Two %2d tithis in month %2d: %s' % (t, m, str(tithi_days[m][t])))
           if tithi_days[m][t][1] == '*':
-            daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI)]  # Shunya
+            daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI.name)]  # Shunya
             if debug_shraaddha_tithi:
               logging.debug('Removed %d' % tithi_days[m][t][0])
             del tithi_days[m][t][:2]
           elif tithi_days[m][t][2] == '*':
-            daily_panchaangas[tithi_days[m][t][1]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI)]  # Shunya
+            daily_panchaangas[tithi_days[m][t][1]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI.name)]  # Shunya
             if debug_shraaddha_tithi:
               logging.debug('Removed %d' % tithi_days[m][t][1])
             del tithi_days[m][t][1:]
@@ -240,7 +239,7 @@ class TithiAssigner(PeriodicPanchaangaApplier):
         elif len(tithi_days[m][t]) == 4:
           if debug_shraaddha_tithi:
             logging.debug('Two dushta %2d tithis in month %2d: %s' % (t, m, str(tithi_days[m][t])))
-          daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI)]  # Shunya
+          daily_panchaangas[tithi_days[m][t][0]].shraaddha_tithi = [Anga(index=0, anga_type_id=AngaType.TITHI.name)]  # Shunya
           if debug_shraaddha_tithi:
             logging.debug('Removed %d' % tithi_days[m][t][0])
           tithi_days[m][t][3] = str(m)

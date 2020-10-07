@@ -91,7 +91,7 @@ def emit(panchaanga, time_format="hh:mm", scripts=[sanscript.DEVANAGARI], comput
 
     tithi_data_str = ''
     for tithi_span in daily_panchaanga.sunrise_day_angas.tithis_with_ends:
-      (tithi_ID, tithi_end_jd) = (tithi_span.name, tithi_span.jd_end)
+      (tithi_ID, tithi_end_jd) = (tithi_span.anga.index, tithi_span.jd_end)
       # if tithi_data_str != '':
       #     tithi_data_str += '\\hspace{1ex}'
       tithi = '\\raisebox{-1pt}{\\moon[scale=0.8]{%d}}\\hspace{2pt}' % (tithi_ID) + \
@@ -110,7 +110,7 @@ def emit(panchaanga, time_format="hh:mm", scripts=[sanscript.DEVANAGARI], comput
 
     nakshatra_data_str = ''
     for nakshatra_span in daily_panchaanga.sunrise_day_angas.nakshatras_with_ends:
-      (nakshatra_ID, nakshatra_end_jd) = (nakshatra_span.name, nakshatra_span.jd_end)
+      (nakshatra_ID, nakshatra_end_jd) = (nakshatra_span.anga.index, nakshatra_span.jd_end)
       if nakshatra_data_str != '':
         nakshatra_data_str += '\\hspace{1ex}'
       nakshatra = jyotisha.names.NAMES['NAKSHATRA_NAMES'][scripts[0]][nakshatra_ID]
@@ -128,7 +128,7 @@ def emit(panchaanga, time_format="hh:mm", scripts=[sanscript.DEVANAGARI], comput
 
     rashi_data_str = ''
     for raashi_span in daily_panchaanga.sunrise_day_angas.raashis_with_ends:
-      (rashi_ID, rashi_end_jd) = (raashi_span.name, raashi_span.jd_end)
+      (rashi_ID, rashi_end_jd) = (raashi_span.anga.index, raashi_span.jd_end)
       # if rashi_data_str != '':
       #     rashi_data_str += '\\hspace{1ex}'
       rashi = jyotisha.names.NAMES['RASHI_SUFFIXED_NAMES'][scripts[0]][rashi_ID]
@@ -150,7 +150,7 @@ def emit(panchaanga, time_format="hh:mm", scripts=[sanscript.DEVANAGARI], comput
 
     yoga_data_str = ''
     for yoga_span in daily_panchaanga.sunrise_day_angas.yogas_with_ends:
-      (yoga_ID, yoga_end_jd) = (yoga_span.name, yoga_span.jd_end)
+      (yoga_ID, yoga_end_jd) = (yoga_span.anga.index, yoga_span.jd_end)
       # if yoga_data_str != '':
       #     yoga_data_str += '\\hspace{1ex}'
       yoga = jyotisha.names.NAMES['YOGA_NAMES'][scripts[0]][yoga_ID]
@@ -170,7 +170,7 @@ def emit(panchaanga, time_format="hh:mm", scripts=[sanscript.DEVANAGARI], comput
 
     karana_data_str = ''
     for numKaranam, karaNa_span in enumerate(daily_panchaanga.sunrise_day_angas.karanas_with_ends):
-      (karana_ID, karana_end_jd) = (karaNa_span.name, karaNa_span.jd_end)
+      (karana_ID, karana_end_jd) = (karaNa_span.anga.index, karaNa_span.jd_end)
       # if numKaranam == 1:
       #     karana_data_str += '\\hspace{1ex}'
       karana = jyotisha.names.NAMES['KARANA_NAMES'][scripts[0]][karana_ID]

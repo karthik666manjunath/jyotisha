@@ -48,7 +48,7 @@ class TithiFestivalAssigner(FestivalAssigner):
         tithi_moonrise = int(1 + floor(ldiff_moonrise / 12.0))
         tithi_moonrise_tmrw = int(1 + floor(ldiff_moonrise_tmrw / 12.0))
 
-        _m = self.daily_panchaangas[d].lunar_month_sunrise
+        _m = self.daily_panchaangas[d].lunar_month_sunrise.index
         if floor(_m) != _m:
           _m = 13  # Adhika masa
         chaturthi_name = names.NAMES['SANKATAHARA_CHATURTHI_NAMES']['hk'][_m] + '-mahAgaNapati '
@@ -144,7 +144,7 @@ class TithiFestivalAssigner(FestivalAssigner):
       [y, m, dt, t] = time.jd_to_utc_gregorian(self.panchaanga.jd_start + d - 1).to_date_fractional_hour_tuple()
 
       # SPECIAL SAPTAMIs
-      if self.daily_panchaangas[d].date.get_weekday() == 0 and (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 7:
+      if self.daily_panchaangas[d].date.get_weekday() == 0 and (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise.index % 15) == 7:
         festival_name = 'bhAnusaptamI'
         if self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise == 7:
           festival_name = 'vijayA' + '~' + festival_name
@@ -176,9 +176,9 @@ class TithiFestivalAssigner(FestivalAssigner):
       # EKADASHI Vratam
       # One of two consecutive tithis must appear @ sunrise!
 
-      if (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 10 or (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise % 15) == 11:
+      if (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise.index % 15) == 10 or (self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise.index % 15) == 11:
         yati_ekaadashii_fday = smaarta_ekaadashii_fday = vaishnava_ekaadashii_fday = None
-        ekaadashii_tithi_days = [x.sunrise_day_angas.tithi_at_sunrise % 15 for x in self.daily_panchaangas[d:d + 3]]
+        ekaadashii_tithi_days = [x.sunrise_day_angas.tithi_at_sunrise.index % 15 for x in self.daily_panchaangas[d:d + 3]]
         if self.daily_panchaangas[d].sunrise_day_angas.tithi_at_sunrise > 15:
           ekaadashii_paksha = 'krishna'
         else:
@@ -318,7 +318,7 @@ class TithiFestivalAssigner(FestivalAssigner):
         if self.daily_panchaangas[d].sunrise_day_angas.nakshatra_at_sunrise in [21, 22, 23]:
           # We have a dvaadashii near shravana, check for Shravana sparsha
           for td in [x.sunrise_day_angas.tithis_with_ends for x in self.daily_panchaangas[d:d + 2]]:
-            (t12, t12_end) = (td[0].name, td[0].jd_end)
+            (t12, t12_end) = (td[0].anga, td[0].jd_end)
             if t12_end is None:
               continue
             if (t12 % 15) == 11:
@@ -383,19 +383,17 @@ class TithiFestivalAssigner(FestivalAssigner):
           pref = names.get_chandra_masa(self.daily_panchaangas[d].lunar_month_sunrise, names.NAMES, 'hk',
                                         visarga=False) + '-'
 
-        ama_nakshatra_today = self.panchaanga.get_2_day_interval_boundaries_angas(d, lambda x: NakshatraDivision(x,
-                                                                                                                 ayanaamsha_id=self.ayanaamsha_id).get_nakshatra(),
-                                                          'aparaahna')[:2]
+        ama_nakshatras_today = self.daily_panchaangas[d].day_length_based_periods.aparaahna.get_boundary_angas(ayanaamsha_id=self.ayanaamsha_id, anga_type=AngaType.NAKSHATRA)
         suff = ''
         # Assign
-        if 23 in ama_nakshatra_today and self.daily_panchaangas[d].lunar_month_sunrise == 10:
+        if 23 in ama_nakshatras_today.to_tuple() and self.daily_panchaangas[d].lunar_month_sunrise == 10:
           suff = ' (alabhyam–zraviSThA)'
-        elif 24 in ama_nakshatra_today and self.daily_panchaangas[d].lunar_month_sunrise == 10:
+        elif 24 in ama_nakshatras_today.to_tuple() and self.daily_panchaangas[d].lunar_month_sunrise == 10:
           suff = ' (alabhyam–zatabhiSak)'
-        elif ama_nakshatra_today[0] in [15, 16, 17, 6, 7, 8, 23, 24, 25]:
-          suff = ' (alabhyam–%s)' % names.NAMES['NAKSHATRA_NAMES']['hk'][ama_nakshatra_today[0]]
-        elif ama_nakshatra_today[1] in [15, 16, 17, 6, 7, 8, 23, 24, 25]:
-          suff = ' (alabhyam–%s)' % names.NAMES['NAKSHATRA_NAMES']['hk'][ama_nakshatra_today[1]]
+        elif ama_nakshatras_today.start in [15, 16, 17, 6, 7, 8, 23, 24, 25]:
+          suff = ' (alabhyam–%s)' % names.NAMES['NAKSHATRA_NAMES']['hk'][ama_nakshatras_today.start.index]
+        elif ama_nakshatras_today.end in [15, 16, 17, 6, 7, 8, 23, 24, 25]:
+          suff = ' (alabhyam–%s)' % names.NAMES['NAKSHATRA_NAMES']['hk'][ama_nakshatras_today.end.index]
         if self.daily_panchaangas[d].date.get_weekday() in [1, 2, 4]:
           if suff == '':
             suff = ' (alabhyam–puSkalA)'
