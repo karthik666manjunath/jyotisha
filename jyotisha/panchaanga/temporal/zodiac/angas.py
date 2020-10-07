@@ -17,7 +17,7 @@ class AngaType(JsonObject):
   RASHI = None
   YOGA = None
   KARANA = None
-  SOLAR_MONTH = None
+  SIDEREAL_MONTH = None
   SOLAR_NAKSH = None
   SOLAR_NAKSH_PADA = None
 
@@ -33,7 +33,7 @@ class AngaType(JsonObject):
       key = name + "_NAMES"
       if name == 'SOLAR_NAKSH':
         key = 'NAKSHATRA'
-      elif name == 'SOLAR_MONTH':
+      elif name == 'SIDEREAL_MONTH':
         key = 'CHANDRA_MASA_NAMES'
       if key in NAMES:
         self.names_dict = NAMES[key]
@@ -48,7 +48,7 @@ AngaType.NAKSHATRA_PADA = AngaType(name='NAKSHATRA_PADA', num_angas=108, weight_
 AngaType.RASHI = AngaType(name='RASHI', num_angas=12, weight_moon=1, weight_sun=0)
 AngaType.YOGA = AngaType(name='YOGA', num_angas=27, weight_moon=1, weight_sun=1)
 AngaType.KARANA = AngaType(name='KARANA', num_angas=60, weight_moon=1, weight_sun=-1)
-AngaType.SOLAR_MONTH = AngaType(name='SOLAR_MONTH', num_angas=12, weight_moon=0, weight_sun=1)
+AngaType.SIDEREAL_MONTH = AngaType(name='SIDEREAL_MONTH', num_angas=12, weight_moon=0, weight_sun=1)
 AngaType.SOLAR_NAKSH = AngaType(name='SOLAR_NAKSH', num_angas=27, weight_moon=0, weight_sun=1)
 AngaType.SOLAR_NAKSH_PADA = AngaType(name='SOLAR_NAKSH_PADA', num_angas=108, weight_moon=0, weight_sun=1)
 
@@ -60,7 +60,7 @@ class Anga(common.JsonObject):
 
   def get_name(self, script="hk"):
     name_dict = NAME_TO_TYPE[self.anga_type_id].names_dict
-    if self.anga_type_id == AngaType.SOLAR_MONTH.name:
+    if self.anga_type_id == AngaType.SIDEREAL_MONTH.name:
       return names.get_chandra_masa(month=self.index, NAMES=NAMES, script=script)
     elif name_dict is not None:
       return name_dict[script][self.index]

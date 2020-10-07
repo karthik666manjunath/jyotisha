@@ -181,11 +181,11 @@ class DailyPanchaanga(common.JsonObject):
     # If solar transition happens before the current sunset but after the previous sunset, then that is taken to be solar day 1.
     self.compute_sun_moon_transitions(previous_day_panchaanga=previous_day_panchaanga)
     solar_month_sunset = NakshatraDivision(jd=self.jd_sunset, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
-      anga_type=AngaType.SOLAR_MONTH)
+      anga_type=AngaType.SIDEREAL_MONTH)
 
     solar_sidereal_month_end_jd = None
     if previous_day_panchaanga is None or previous_day_panchaanga.solar_sidereal_date_sunset.day > 28 :
-      anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, default_anga_type=AngaType.SOLAR_MONTH)
+      anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, default_anga_type=AngaType.SIDEREAL_MONTH)
       solar_month_sunset_span = anga_finder.find(jd1=self.jd_sunset - 32, jd2=self.jd_sunset + 5, target_anga_in=solar_month_sunset)
       solar_sidereal_month_day_sunset = len(self.city.get_sunsets_in_period(jd_start=solar_month_sunset_span.jd_start, jd_end=self.jd_sunset + 1/48.0))
       if solar_sidereal_month_day_sunset == 1 and solar_month_sunset_span.jd_start > self.jd_sunrise:
@@ -275,7 +275,7 @@ class DailyPanchaanga(common.JsonObject):
     and karana.
   
     Args:
-        :param anga_type: TITHI, nakshatra, YOGA, KARANA, SOLAR_MONTH, SOLAR_NAKSH
+        :param anga_type: TITHI, nakshatra, YOGA, KARANA, SIDEREAL_MONTH, SOLAR_NAKSH
   
     Returns:
       tuple: A tuple comprising

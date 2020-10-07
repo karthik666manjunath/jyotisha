@@ -43,7 +43,7 @@ def get_panchaanga_for_shaka_year(city, year, precomputed_json_dir="~/Documents/
     logging.info('No precomputed data available. Computing panchaanga...\n')
     SHAKA_CIVIL_ERA_DIFF = 78
     start_year_civil = year + SHAKA_CIVIL_ERA_DIFF
-    anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SOLAR_MONTH)
+    anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SIDEREAL_MONTH)
     start_equinox = anga_span_finder.find(jd1=time.utc_gregorian_to_jd(Date(year=start_year_civil, month=3, day=1)), jd2=time.utc_gregorian_to_jd(Date(year=start_year_civil, month=5, day=1)), target_anga_in=1)
     end_equinox = anga_span_finder.find(jd1=time.utc_gregorian_to_jd(Date(year=start_year_civil  + 1, month=3, day=1)), jd2=time.utc_gregorian_to_jd(Date(year=start_year_civil + 1, month=5, day=1)), target_anga_in=1)
     tz = Timezone(city.timezone)

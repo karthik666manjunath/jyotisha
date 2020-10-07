@@ -117,7 +117,7 @@ class SolsticePostDark10AdhikaAssigner(LunarMonthAssigner):
       # Are we in a lunar month containing solstice?
       tropical_month = zodiac.get_tropical_month(jd=daily_panchaanga.jd_sunrise)
       if tropical_month in [3, 9]:
-        anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SOLAR_MONTH)
+        anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SIDEREAL_MONTH)
         solstice_tropical_month_span = anga_span_finder.find(jd1=daily_panchaanga.jd_sunrise, jd2=daily_panchaanga.jd_sunrise + 32, target_anga_in=daily_panchaanga.tropical_date_sunset.month + 1)
         tithi_1_jds = zodiac.get_tithis_in_period(jd_start=daily_panchaanga.jd_sunrise, jd_end=solstice_tropical_month_span.jd_start, tithi=1)
         if len(tithi_1_jds) == 0:

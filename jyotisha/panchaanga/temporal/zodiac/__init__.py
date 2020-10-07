@@ -102,7 +102,7 @@ class NakshatraDivision(common.JsonObject):
 
       Args:
         :param anga_type: One of the pre-defined tuple-valued constants in the panchaanga
-        class, such as TITHI, nakshatra, YOGA, KARANA or SOLAR_MONTH
+        class, such as TITHI, nakshatra, YOGA, KARANA or SIDEREAL_MONTH
 
       Returns:
         float anga
@@ -147,7 +147,7 @@ class NakshatraDivision(common.JsonObject):
     """Compute various properties of the time based on lunar and solar longitudes, division of a circle into a certain number of degrees (arc_len).
     """
     anga_objects = [AngaType.TITHI, AngaType.TITHI_PADA, AngaType.NAKSHATRA, AngaType.NAKSHATRA_PADA, AngaType.RASHI,
-                    AngaType.SOLAR_MONTH, AngaType.SOLAR_NAKSH, AngaType.YOGA, AngaType.KARANA]
+                    AngaType.SIDEREAL_MONTH, AngaType.SOLAR_NAKSH, AngaType.YOGA, AngaType.KARANA]
     angas = list(map(lambda anga_object: self.get_anga(anga_type=anga_object), anga_objects))
     anga_ids = list(map(lambda anga_obj: anga_obj.index, anga_objects))
     return dict(list(zip(anga_ids, angas)))
@@ -191,7 +191,7 @@ class NakshatraDivision(common.JsonObject):
       int rashi, where 1 stands for mESa, ..., 12 stands for mIna
     """
 
-    return self.get_anga(AngaType.SOLAR_MONTH)
+    return self.get_anga(AngaType.SIDEREAL_MONTH)
 
 
 def longitude_to_right_ascension(longitude):
@@ -308,7 +308,7 @@ def get_tithis_in_period(jd_start, jd_end, tithi):
 
 def get_tropical_month(jd):
   nd = NakshatraDivision(jd=jd, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
-  return nd.get_anga(anga_type=AngaType.SOLAR_MONTH)
+  return nd.get_anga(anga_type=AngaType.SIDEREAL_MONTH)
 
 
 def get_previous_solstice(jd):
@@ -320,7 +320,7 @@ def get_previous_solstice(jd):
   months_past_solstice = (tropical_month - target_month) % 12
   jd1 = jd - (months_past_solstice * 30 + months_past_solstice + 30)
   jd2 = jd - (months_past_solstice * 30 + months_past_solstice) + 30
-  anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SOLAR_MONTH)
+  anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SIDEREAL_MONTH)
   return anga_span_finder.find(jd1=jd1, jd2=jd2, target_anga_in=target_month)
 
 
