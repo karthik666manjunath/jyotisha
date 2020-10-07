@@ -20,7 +20,7 @@ TEST_DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 def panchaanga_json_comparer(city, year):
   expected_content_path=os.path.join(TEST_DATA_PATH, '%s-%d.json' % (city.name, year))
   panchaanga = annual.get_panchaanga_for_civil_year(city=city, year=year,
-                                                    allow_precomputed=False)
+                                                    allow_precomputed=True)
   if not os.path.exists(expected_content_path):
     logging.warning("File must have been deliberately deleted as obsolete. So, will dump a new file for future tests.")
     panchaanga.dump_to_file(filename=expected_content_path,
