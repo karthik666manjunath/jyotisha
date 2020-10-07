@@ -150,14 +150,14 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     kaala = d0_angas.interval.name
     prev_anga = target_anga - 1
     next_anga = target_anga + 1
-    if d0_angas.start == target_anga or d0_angas.end == target_anga:
+    if d0_angas.start >= target_anga or d0_angas.end >= target_anga:
       fday = 0
     elif d1_angas.start == target_anga or d1_angas.end == target_anga:
       fday = 0 + 1
     else:
       # This means that the correct anga did not
       # touch the kaala on either day!
-      if angas == [prev_anga, prev_anga, next_anga, next_anga]:
+      if d0_angas.end == prev_anga and d1_angas.start == next_anga:
         # d_offset = {'sunrise': 0, 'aparaahna': 1, 'moonrise': 0, 'madhyaahna': 1, 'sunset': 1}[kaala]
         d_offset = 0 if kaala in ['sunrise', 'moonrise'] else 1
         # Need to assign a day to the festival here
@@ -168,6 +168,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
         # conditions instead of this fix
         fday = 0 + d_offset
       else:
+        logging.info("%s, %s, %s - Not assigning a festival this day. Likely the next then.", str(d0_angas.to_tuple()), str(d1_angas.to_tuple()), str(target_anga.index))
         fday = None
     return fday
 
@@ -207,7 +208,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
       else:
         fday = 0
     else:
-      logging.error("%s\n\n%s\n\n%s", str(d0_angas.to_tuple()), str(d1_angas.to_tuple()), str(target_anga.index))
+      logging.info("%s, %s, %s.", str(d0_angas.to_tuple()), str(d1_angas.to_tuple()), str(target_anga.index))
       fday = None
     return fday
 
@@ -233,7 +234,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
 
     anga_type = target_anga.get_type()
     prev_anga = target_anga - 1
-    anga_sunrise = self.daily_panchaangas[d].sunrise_day_angas.get_angas_with_ends(self, anga_type)[0].anga
+    anga_sunrise = self.daily_panchaangas[d].sunrise_day_angas.get_angas_with_ends(anga_type=anga_type)[0].anga
 
     fday = None
 
@@ -253,7 +254,8 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
       elif priority == 'puurvaviddha':
         offset = self.decide_puurvaviddha_priority(d0_angas=d0_angas, d1_angas=d1_angas, target_anga=target_anga)
         if offset is None:
-          raise ValueError(festival_name)
+          # It is possible that the previous tithi may span two sunrises. Then, offset computed will be None. We would have better luck the next day though.
+          pass
         else:
           if festival_name in self.panchaanga.festival_id_to_days and self.panchaanga.festival_id_to_days[festival_name].count(self.daily_panchaangas[d + offset-1].date) == 0:
             # Check if yesterday was assigned already
