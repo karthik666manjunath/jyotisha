@@ -102,17 +102,17 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
   def get_2_day_interval_boundary_angas(self, kaala, anga_type, d):
     if kaala == 'arunodaya':
       # We want for arunodaya *preceding* today's sunrise; therefore, use d - 1
-      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d-1].jd_sunrise, jd_end=None)
-      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_sunrise, jd_end=None)
+      interval_prev = self.daily_panchaangas[d-1].day_length_based_periods.arunodaya
+      interval_next = self.daily_panchaangas[d].day_length_based_periods.arunodaya
     elif kaala == 'sunrise':
-      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_sunrise, jd_end=None)
-      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_sunrise, jd_end=None)
+      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_sunrise, jd_end=self.daily_panchaangas[d].jd_sunrise)
+      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_sunrise, jd_end=self.daily_panchaangas[d+1].jd_sunrise)
     elif kaala == 'sunset':
-      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_sunset, jd_end=None)
-      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_sunset, jd_end=None)
+      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_sunset, jd_end=self.daily_panchaangas[d].jd_sunset)
+      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_sunset, jd_end=self.daily_panchaangas[d+1].jd_sunset)
     elif kaala == 'moonrise':
-      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_moonrise, jd_end=None)
-      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_moonrise, jd_end=None)
+      interval_prev = Interval(name=kaala, jd_start=self.daily_panchaangas[d].jd_moonrise, jd_end=self.daily_panchaangas[d].jd_moonrise)
+      interval_next = Interval(name=kaala, jd_start=self.daily_panchaangas[d+1].jd_moonrise, jd_end=self.daily_panchaangas[d+1].jd_moonrise)
     else:
       interval_prev = getattr(self.daily_panchaangas[d].day_length_based_periods, kaala)
       interval_next = getattr(self.daily_panchaangas[d+1].day_length_based_periods, kaala)
@@ -138,7 +138,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     elif d1_angas.start == target_anga:
       fday = 0
     elif d0_angas.start == target_anga and d0_angas.end == next_anga:
-      if d0_angas.name == 'aparaahna':
+      if d0_angas.interval.name == 'aparaahna':
         fday = 0
       else:
         fday = 0 - 1
@@ -157,24 +157,23 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     p, q, r = prev_anga, target_anga, next_anga  # short-hand
     # Combinations
     # (p:0, q:1, r:2)
-    # <a> 0 0 1 1: d + 1
-    # <d> 0 1 1 1: d + 1
-    # <g> 1 1 1 1: d + 1
-    # <b> 0 0 1 2: d + 1
-    # <c> 0 0 2 2: d + 1
-    # <e> 0 1 1 2: vyApti
-    # <f> 0 1 2 2: d
-    # <h> 1 1 1 2: d
-    # <i> 1 1 2 2: d
-    if d0_angas.end >= r:
+    # <j> ? r ? ?: d
+    # <a> ? ? q q: d + 1
+    # <b> ? p ? ?: d + 1
+    # <e> p q q r: vyApti
+    # <h> q q ? r: d
+    # <i> ? q r ?: d
+    if d0_angas.end > q:
       # One of the cases covered here: Anga might have been between end of previous day's interval and beginning of this day's interval. Then we would have: r r for d1_angas.
       fday = 0
-    elif d0_angas.end == p and d1_angas.start >= q:
-      # Covers p p r r, [p, p, q, r], [p, p, q, q]
-      fday = 1
     elif d1_angas.start == q and d1_angas.end == q:
       fday = 1
-    elif d0_angas.start == q and d1_angas.start >= r:
+    elif d0_angas.end < q and d1_angas.start >= q:
+      # Covers p p r r, [p, p, q, r], [p, p, q, q]
+      fday = 1
+    elif d0_angas.start == q and d0_angas.end == q and d1_angas.end > q:
+      fday = 0
+    elif d0_angas.end == q and d1_angas.start > q:
       fday = 0
     elif d0_angas.end == q and d1_angas.start == q:
       anga_span = zodiac.AngaSpanFinder(ayanaamsha_id=self.ayanaamsha_id).find(jd1=d0_angas.interval.jd_start, jd2=d1_angas.interval.jd_end, target_anga_in=target_anga)

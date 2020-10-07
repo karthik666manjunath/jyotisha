@@ -149,7 +149,7 @@ def write_monthly_tex(panchaanga, template_file, scripts=[sanscript.DEVANAGARI],
 
     tithi_data_str = ''
     for tithi_span in daily_panchaanga.sunrise_day_angas.tithis_with_ends:
-      (tithi_ID, tithi_end_jd) = (tithi_span.name, tithi_span.jd_end)
+      (tithi_ID, tithi_end_jd) = (tithi_span.anga.index, tithi_span.jd_end)
       # if tithi_data_str != '':
       #     tithi_data_str += '\\hspace{2ex}'
       tithi = '\\moon[scale=0.6]{%d}\\hspace{2pt}' % (tithi_ID) + \
@@ -166,7 +166,7 @@ def write_monthly_tex(panchaanga, template_file, scripts=[sanscript.DEVANAGARI],
 
     nakshatra_data_str = ''
     for nakshatra_span in daily_panchaanga.sunrise_day_angas.nakshatras_with_ends:
-      (nakshatra_ID, nakshatra_end_jd) = (nakshatra_span.name, nakshatra_span.jd_end)
+      (nakshatra_ID, nakshatra_end_jd) = (nakshatra_span.anga.index, nakshatra_span.jd_end)
       # if nakshatra_data_str != '':
       #     nakshatra_data_str += '\\hspace{2ex}'
       nakshatra = jyotisha.names.NAMES['NAKSHATRA_NAMES'][scripts[0]][nakshatra_ID]
@@ -183,7 +183,7 @@ def write_monthly_tex(panchaanga, template_file, scripts=[sanscript.DEVANAGARI],
 
     yoga_data_str = ''
     for yoga_span in daily_panchaanga.sunrise_day_angas.yogas_with_ends:
-      (yoga_ID, yoga_end_jd) = (yoga_span.name, yoga_span.jd_end)
+      (yoga_ID, yoga_end_jd) = (yoga_span.anga.index, yoga_span.jd_end)
       # if yoga_data_str != '':
       #     yoga_data_str += '\\hspace{2ex}'
       yoga = jyotisha.names.NAMES['YOGA_NAMES'][scripts[0]][yoga_ID]
@@ -199,7 +199,7 @@ def write_monthly_tex(panchaanga, template_file, scripts=[sanscript.DEVANAGARI],
 
     karana_data_str = ''
     for numKaranam, karaNa_span in enumerate(daily_panchaanga.sunrise_day_angas.karanas_with_ends):
-      (karana_ID, karana_end_jd) = (karaNa_span.name, karaNa_span.jd_end)
+      (karana_ID, karana_end_jd) = (karaNa_span.anga.index, karaNa_span.jd_end)
       # if numKaranam == 1:
       #     karana_data_str += '\\hspace{2ex}'
       if numKaranam == 2:

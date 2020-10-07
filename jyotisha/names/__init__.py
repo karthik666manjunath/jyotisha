@@ -19,6 +19,9 @@ def get_ayanaamsha_name(ayanaamsha_id):
 def get_ekaadashii_name(paksha, lmonth):
   """Return the name of an ekaadashii
   """
+  from jyotisha.panchaanga.temporal.zodiac import Anga
+  if isinstance(lmonth, Anga):
+    lmonth = lmonth.index
   if paksha == 'shukla':
     if lmonth == int(lmonth):
       return '%s-EkAdazI' % NAMES['SHUKLA_EKADASHI_NAMES']['hk'][lmonth]
@@ -35,6 +38,9 @@ def get_ekaadashii_name(paksha, lmonth):
 
 def get_chandra_masa(month, NAMES, script, visarga=True):
   # The names dict will have been altered to include {0: aspaShTam}.
+  from jyotisha.panchaanga.temporal.zodiac import Anga
+  if isinstance(month, Anga):
+    month = month.index
   if visarga:
     if month == int(month):
       return NAMES['CHANDRA_MASA_NAMES'][script][month]

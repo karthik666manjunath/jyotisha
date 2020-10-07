@@ -92,6 +92,13 @@ class Anga(common.JsonObject):
       return -gap
     else:
       return gap
+
+  def __mod__(self, other):
+    if isinstance(other, Number):
+      # We don't construct an anga object to avoid confusion between shukla and kRShNa paxa tithis. 
+      return self.index % other
+    else:
+      raise ValueError((self, other))
   
   def __add__(self, other):
     if isinstance(other, Number):
