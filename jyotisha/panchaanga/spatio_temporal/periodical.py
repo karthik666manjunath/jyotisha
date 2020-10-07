@@ -1,5 +1,6 @@
 import sys
 
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
 import methodtools
 from timebudget import timebudget
 
@@ -73,10 +74,10 @@ class Panchaanga(common.JsonObject):
 
     solar_month_today_sunset = NakshatraDivision(daily_panchaanga_start.jd_sunset,
                                                  ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
-      zodiac.AngaType.SOLAR_MONTH)
+      AngaType.SOLAR_MONTH)
     solar_month_tmrw_sunrise = NakshatraDivision(daily_panchaanga_start.jd_sunrise + 1,
                                                  ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
-      zodiac.AngaType.SOLAR_MONTH)
+      AngaType.SOLAR_MONTH)
     month_start_after_sunset = solar_month_today_sunset != solar_month_tmrw_sunrise
 
     #############################################################

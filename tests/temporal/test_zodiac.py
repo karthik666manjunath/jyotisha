@@ -1,7 +1,8 @@
 import numpy
 from jyotisha.panchaanga.temporal import zodiac, time
 from jyotisha.panchaanga.temporal.time import Date
-from jyotisha.panchaanga.temporal.zodiac import NakshatraDivision, Ayanamsha, AngaType, AngaSpanFinder
+from jyotisha.panchaanga.temporal.zodiac import NakshatraDivision, Ayanamsha, AngaSpanFinder
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
 
 
 def test_get_ayanaamsha():
@@ -28,22 +29,22 @@ def test_get_angam():
 
 def test_get_anga_span_solar_month():
   from jyotisha.panchaanga.temporal import time
-  span_finder = AngaSpanFinder(anga_type=AngaType.SOLAR_MONTH, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
+  span_finder = AngaSpanFinder(default_anga_type=AngaType.SOLAR_MONTH, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
 
-  assert span_finder.find(jd1=2458222.0333434483-32, jd2=2458222.0333434483 + 4, target_anga_id=12,).to_tuple() == (2458192.24785228, 2458222.6026552585)
+  assert span_finder.find(jd1=2458222.0333434483-32, jd2=2458222.0333434483 + 4, target_anga_in=12, ).to_tuple() == (2458192.24785228, 2458222.6026552585)
 
   jd2 = time.utc_gregorian_to_jd(time.Date(2020, 4, 16))
-  assert span_finder.find(jd1=jd2-32, jd2=jd2, target_anga_id=1).to_tuple() == (2458953.1096598045, None)
+  assert span_finder.find(jd1=jd2-32, jd2=jd2, target_anga_in=1).to_tuple() == (2458953.1096598045, None)
 
-  assert span_finder.find(jd1=2458133.0189002366-32, jd2=2458133.0189002366, target_anga_id=10,).to_tuple() == (2458132.8291680976, None)
+  assert span_finder.find(jd1=2458133.0189002366-32, jd2=2458133.0189002366, target_anga_in=10, ).to_tuple() == (2458132.8291680976, None)
 
 
 def test_get_anga_span_tithi():
-  span_finder = AngaSpanFinder(anga_type=AngaType.TITHI, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
+  span_finder = AngaSpanFinder(default_anga_type=AngaType.TITHI, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
 
-  assert span_finder.find(jd1=2458102.5, jd2=2458108.5, target_anga_id=30).to_tuple() == (2458104.6663699686, 2458105.771125107)
+  assert span_finder.find(jd1=2458102.5, jd2=2458108.5, target_anga_in=30).to_tuple() == (2458104.6663699686, 2458105.771125107)
   
-  assert span_finder.find(jd1=2444959.54042, jd2=2444963.54076, target_anga_id=27).to_tuple() == (2444960.4924699212, 2444961.599213224)
+  assert span_finder.find(jd1=2444959.54042, jd2=2444963.54076, target_anga_in=27).to_tuple() == (2444960.4924699212, 2444961.599213224)
 
 
 def test_get_tithis_in_period():

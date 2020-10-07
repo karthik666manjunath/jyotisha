@@ -34,6 +34,7 @@ def get_ekaadashii_name(paksha, lmonth):
 
 
 def get_chandra_masa(month, NAMES, script, visarga=True):
+  # The names dict will have been altered to include {0: aspaShTam}.
   if visarga:
     if month == int(month):
       return NAMES['CHANDRA_MASA_NAMES'][script][month]

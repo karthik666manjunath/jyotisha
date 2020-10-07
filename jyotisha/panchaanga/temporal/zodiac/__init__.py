@@ -1,16 +1,17 @@
 import logging
 import sys
 from math import floor
+from numbers import Number
 
 import methodtools
 import numpy
 import swisseph as swe
-from scipy.optimize import brentq
-
 from jyotisha.panchaanga.temporal.body import Graha
-from jyotisha.panchaanga.temporal.interval import Interval
+from jyotisha.panchaanga.temporal.interval import Interval, AngaSpan
+from jyotisha.panchaanga.temporal.zodiac.angas import AngaType, Anga
 from sanskrit_data.schema import common
 from sanskrit_data.schema.common import JsonObject
+from scipy.optimize import brentq
 
 # noinspection SpellCheckingInspection
 logging.basicConfig(
@@ -49,48 +50,13 @@ class Ayanamsha(common.JsonObject):
     raise Exception("Bad ayamasha_id")
 
 
-
-
-class AngaType(JsonObject):
-  # The below class variables are declared here, but instantiated later.
-  TITHI = None
-  TITHI_PADA = None
-  NAKSHATRA = None
-  NAKSHATRA_PADA = None
-  RASHI = None
-  YOGA = None
-  KARANA = None
-  SOLAR_MONTH = None
-  SOLAR_NAKSH = None
-  SOLAR_NAKSH_PADA = None
-
-  def __init__(self, name, arc_length, weight_moon, weight_sun):
-    super(AngaType, self).__init__()
-    self.name = name
-    self.arc_length = arc_length
-    self.weight_moon = weight_moon
-    self.weight_sun = weight_sun
-
-
-AngaType.TITHI = AngaType(name='TITHI', arc_length=360.0 / 30.0, weight_moon=1, weight_sun=-1)
-AngaType.TITHI_PADA = AngaType(name='TITHI_PADA', arc_length=360.0 / 120.0, weight_moon=1, weight_sun=-1)
-AngaType.NAKSHATRA = AngaType(name='nakshatra', arc_length=360.0 / 27.0, weight_moon=1, weight_sun=0)
-AngaType.NAKSHATRA_PADA = AngaType(name='NAKSHATRA_PADA', arc_length=360.0 / 108.0, weight_moon=1, weight_sun=0)
-AngaType.RASHI = AngaType(name='RASHI', arc_length=360.0 / 12.0, weight_moon=1, weight_sun=0)
-AngaType.YOGA = AngaType(name='YOGA', arc_length=360.0 / 27.0, weight_moon=1, weight_sun=1)
-AngaType.KARANA = AngaType(name='KARANA', arc_length=360.0 / 60.0, weight_moon=1, weight_sun=-1)
-AngaType.SOLAR_MONTH = AngaType(name='SOLAR_MONTH', arc_length=360.0 / 12.0, weight_moon=0, weight_sun=1)
-AngaType.SOLAR_NAKSH = AngaType(name='SOLAR_NAKSH', arc_length=360.0 / 27.0, weight_moon=0, weight_sun=1)
-AngaType.SOLAR_NAKSH_PADA = AngaType(name='SOLAR_NAKSH_PADA', arc_length=360.0 / 108.0, weight_moon=0, weight_sun=1)
-
-
 class NakshatraDivision(common.JsonObject):
   """Nakshatra division at a certain time, according to a certain ayanaamsha."""
 
-  def __init__(self, julday, ayanaamsha_id):
+  def __init__(self, jd, ayanaamsha_id):
     super().__init__()
     self.ayanaamsha_id = ayanaamsha_id
-    self.julday = julday
+    self.julday = jd
 
   def get_fractional_division_for_body(self, body: Graha, anga_type: AngaType) -> float:
     """
@@ -175,7 +141,7 @@ class NakshatraDivision(common.JsonObject):
         int anga
     """
 
-    return int(1 + floor(self.get_anga_float(anga_type)))
+    return Anga(index=int(1 + floor(self.get_anga_float(anga_type))), anga_type_id=anga_type.name)
 
   def get_all_angas(self):
     """Compute various properties of the time based on lunar and solar longitudes, division of a circle into a certain number of degrees (arc_len).
@@ -240,76 +206,81 @@ def ecliptic_to_equatorial(longitude, latitude):
 
 
 class AngaSpanFinder(JsonObject):
-  def __init__(self, ayanaamsha_id, anga_type):
+  def __init__(self, ayanaamsha_id, default_anga_type=None):
     self.ayanaamsha_id = ayanaamsha_id
-    self.anga_type = anga_type
+    self.default_anga_type = default_anga_type
 
-  def _get_anga(self, jd):
-    return NakshatraDivision(jd, ayanaamsha_id=self.ayanaamsha_id).get_anga( anga_type=self.anga_type)
+  def _get_anga(self, jd, anga_type):
+    return NakshatraDivision(jd, ayanaamsha_id=self.ayanaamsha_id).get_anga( anga_type=anga_type)
 
-  def _get_anga_float_offset(self, jd, target_anga_id):
-    anga_float = NakshatraDivision(jd, ayanaamsha_id=self.ayanaamsha_id).get_anga_float(anga_type=self.anga_type)
-    num_angas = int(360.0 / self.anga_type.arc_length)
-    if anga_float > target_anga_id:
+  def _get_anga_float_offset(self, jd, target_anga):
+    anga_float = NakshatraDivision(jd, ayanaamsha_id=self.ayanaamsha_id).get_anga_float(anga_type=target_anga.get_type())
+    num_angas = int(360.0 / target_anga.get_type().arc_length)
+    if anga_float > target_anga.index:
       return anga_float - num_angas # A negative number
     else:
-      return anga_float - (target_anga_id-1)
+      return anga_float - (target_anga.index - 1)
 
-  def _interpolate_for_start(self, jd1, jd2, target_anga_id):
+  def _interpolate_for_start(self, jd1, jd2, target_anga):
     try:
       # noinspection PyTypeChecker
-      return brentq(lambda x: self._get_anga_float_offset(jd=x, target_anga_id=target_anga_id), jd1, jd2)
+      return brentq(lambda x: self._get_anga_float_offset(jd=x, target_anga=target_anga), jd1, jd2)
     except ValueError:
       return None
 
-  def find_anga_start_between(self, jd1, jd2, target_anga_id):
+  def find_anga_start_between(self, jd1, jd2, target_anga):
     jd_start = None
-    num_angas = int(360.0 / self.anga_type.arc_length)
+    num_angas = int(360.0 / target_anga.get_type().arc_length)
     min_step = 0.5  # Min Step for moving
     jd_bracket_L = jd1
     jd_now = jd1
     while jd_now <= jd2 and jd_start is None:
-      anga_now = self._get_anga(jd=jd_now)
+      anga_now = self._get_anga(jd=jd_now, anga_type=target_anga.get_type())
 
-      if anga_now < target_anga_id or (target_anga_id == 1 and anga_now == num_angas):
+      if anga_now < target_anga or (target_anga == 1 and anga_now == num_angas):
         # So, jd_now will be lower than jd_start
         jd_bracket_L = jd_now
-      if anga_now == target_anga_id:
+      if anga_now == target_anga:
         # In this branch, anga_now will have overshot the jd_start of the required interval.
-        jd_start = self._interpolate_for_start(jd1=jd_bracket_L, jd2=jd_now, target_anga_id=target_anga_id)
+        jd_start = self._interpolate_for_start(jd1=jd_bracket_L, jd2=jd_now, target_anga=target_anga)
       if jd_now == jd2:
         # Prevent infinite loop
         break
       jd_now = min(jd_now + min_step, jd2)
     return jd_start
 
-  def find(self, jd1: float, jd2: float, target_anga_id: int) -> Interval:
+  def find(self, jd1: float, jd2: float, target_anga_in) -> Interval:
     """Computes anga spans for sunrise_day_angas such as tithi, nakshatra, yoga
         and karana.
 
         Args:
+          :param target_anga_in: 
           :param jd1: return the first span that starts after this date
           :param jd2: return the first span that ends before this date
-          :param anga_type: TITHI, nakshatra, YOGA, KARANA, SOLAR_MONTH, SOLAR_NAKSH
           :param ayanaamsha_id
           :param debug
 
         Returns:
-          Interval
+          AngaSpan
     """
-    num_angas = int(360.0 / self.anga_type.arc_length)
-    if target_anga_id > num_angas or target_anga_id < 1:
+    if isinstance(target_anga_in, Number):
+      # TODO: Remove this backward compatibility fix
+      target_anga = Anga(index=target_anga_in, anga_type_id=self.default_anga_type.name)
+    else:
+      target_anga = target_anga_in
+    num_angas = int(360.0 / target_anga.get_type().arc_length)
+    if target_anga > num_angas or target_anga < 1:
       raise ValueError
 
-    anga_interval = Interval(jd_start=None, jd_end=None, name=target_anga_id)
+    anga_interval = AngaSpan(jd_start=None, jd_end=None, anga=target_anga)
 
-    anga_interval.jd_start = self.find_anga_start_between(jd1=jd1, jd2=jd2, target_anga_id=target_anga_id)
+    anga_interval.jd_start = self.find_anga_start_between(jd1=jd1, jd2=jd2, target_anga=target_anga)
 
     if anga_interval.jd_start is None:
-      return Interval(jd_start=None, jd_end=None, name=target_anga_id)  # If it doesn't start, we don't care if it ends!
+      return AngaSpan(jd_start=None, jd_end=None, anga=target_anga)  # If it doesn't start, we don't care if it ends!
 
-    anga_id_after_target = (target_anga_id % num_angas) + 1
-    anga_interval.jd_end = self.find_anga_start_between(jd1=anga_interval.jd_start, jd2=jd2, target_anga_id=anga_id_after_target)
+    next_anga = target_anga + 1
+    anga_interval.jd_end = self.find_anga_start_between(jd1=anga_interval.jd_start, jd2=jd2, target_anga=next_anga)
     return anga_interval
 
 
@@ -321,12 +292,12 @@ def get_tithis_in_period(jd_start, jd_end, tithi):
   if jd_start > jd_end:
     raise ValueError((jd_start, jd_end))
   jd = jd_start
-  anga_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, anga_type=AngaType.TITHI)
+  anga_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.TITHI)
   new_moon_jds = []
   while jd < jd_end:
     new_moon = anga_finder.find(
       jd1=jd, jd2=jd + 30,
-      target_anga_id=tithi)
+      target_anga_in=tithi)
     if new_moon is None:
       raise Exception("Could not find a new moon between %f and %f" % (jd, jd+30))
     if new_moon.jd_start < jd_end:
@@ -336,7 +307,7 @@ def get_tithis_in_period(jd_start, jd_end, tithi):
 
 
 def get_tropical_month(jd):
-  nd = NakshatraDivision(julday=jd, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
+  nd = NakshatraDivision(jd=jd, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
   return nd.get_anga(anga_type=AngaType.SOLAR_MONTH)
 
 
@@ -349,8 +320,8 @@ def get_previous_solstice(jd):
   months_past_solstice = (tropical_month - target_month) % 12
   jd1 = jd - (months_past_solstice * 30 + months_past_solstice + 30)
   jd2 = jd - (months_past_solstice * 30 + months_past_solstice) + 30
-  anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, anga_type=AngaType.SOLAR_MONTH)
-  return anga_span_finder.find(jd1=jd1, jd2=jd2, target_anga_id=target_month)
+  anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SOLAR_MONTH)
+  return anga_span_finder.find(jd1=jd1, jd2=jd2, target_anga_in=target_month)
 
 
 
