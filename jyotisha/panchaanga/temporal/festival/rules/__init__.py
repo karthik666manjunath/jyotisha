@@ -1,19 +1,12 @@
 import json
 import logging
 import os
-import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 import methodtools
-
-from indic_transliteration import xsanscript as sanscript
-from jyotisha.panchaanga.temporal.time import BasicDate
 from sanskrit_data.schema import common
-
-from jyotisha import custom_transliteration
-from jyotisha.names import get_chandra_masa, NAMES
 
 
 class HinduCalendarEventTiming(common.JsonObject):
@@ -198,6 +191,14 @@ DATA_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 
 class RulesRepo(common.JsonObject):
+  LUNAR_MONTH_DIR = "lunar_month"
+  SIDEREAL_SOLAR_MONTH_DIR = "sidereal_solar_month"
+  RELATIVE_EVENT_DIR = "relative_event"
+  DAY_DIR = "day"
+  TITHI_DIR = "tithi"
+  NAKSHATRA_DIR = "nakshatra"
+  YOGA_DIR = "yoga"
+
   def __init__(self, name, path=None, base_url='https://github.com/sanskrit-coders/adyatithi/tree/master'):
     self.name = name
     self.path = path
@@ -214,13 +215,9 @@ rule_repos = [RulesRepo(name="general"), RulesRepo(name="gRhya/general"), RulesR
 class RulesCollection(common.JsonObject):
   def __init__(self, repos=rule_repos):
     self.repos = repos
-    self.lunar_month_nakshatra_to_rules = defaultdict(list)
-    self.lunar_month_yoga_to_rules = {}
-    self.lunar_date_to_rules = {}
-    self.sidereal_solar_nakshatra_to_rule = {}
-    self.sidereal_solar_date_to_rule = {}
     self.relative = {}
     self.name_to_rule = {}
+    self.tree = None
     self.set_rule_dicts()
 
   @methodtools.lru_cache()  # the order is important!
@@ -231,8 +228,9 @@ class RulesCollection(common.JsonObject):
   def set_rule_dicts(self):
     for repo in self.repos:
       self.name_to_rule.update(get_festival_rules_map(
-        os.path.join(DATA_ROOT, repo.get_path(), repo=repo)))
-
+        os.path.join(DATA_ROOT, repo.get_path()), repo=repo))
+    from sanskrit_data import collection_helper
+    self.tree = collection_helper.tree_maker(leaves=self.name_to_rule.values(), path_fn=lambda x: x.get_storage_file_name(base_dir="").replace("__info.toml", ""))
     # for fest_name, fest in self.name_to_rule.items():
     #   date = BasicDate(month=fest.timing.month, day=month.timing.month_number)
 
