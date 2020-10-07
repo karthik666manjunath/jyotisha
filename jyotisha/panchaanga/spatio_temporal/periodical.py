@@ -74,10 +74,10 @@ class Panchaanga(common.JsonObject):
 
     solar_month_today_sunset = NakshatraDivision(daily_panchaanga_start.jd_sunset,
                                                  ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
-      AngaType.SOLAR_MONTH)
+      AngaType.SIDEREAL_MONTH)
     solar_month_tmrw_sunrise = NakshatraDivision(daily_panchaanga_start.jd_sunrise + 1,
                                                  ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(
-      AngaType.SOLAR_MONTH)
+      AngaType.SIDEREAL_MONTH)
     month_start_after_sunset = solar_month_today_sunset != solar_month_tmrw_sunrise
 
     #############################################################

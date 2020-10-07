@@ -29,7 +29,7 @@ def test_get_angam():
 
 def test_get_anga_span_solar_month():
   from jyotisha.panchaanga.temporal import time
-  span_finder = AngaSpanFinder(default_anga_type=AngaType.SOLAR_MONTH, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
+  span_finder = AngaSpanFinder(default_anga_type=AngaType.SIDEREAL_MONTH, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
 
   assert span_finder.find(jd1=2458222.0333434483-32, jd2=2458222.0333434483 + 4, target_anga_in=12, ).to_tuple() == (2458192.24785228, 2458222.6026552585)
 

@@ -81,7 +81,7 @@ class SolarFestivalAssigner(FestivalAssigner):
         moon_hasta_jd_start = moon_hasta_jd_start = t30_start = None
         moon_hasta_jd_end = moon_hasta_jd_end = t30_end = None
 
-        anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, default_anga_type=AngaType.SOLAR_MONTH)
+        anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id, default_anga_type=AngaType.SIDEREAL_MONTH)
         sun_hasta_jd_start, sun_hasta_jd_end = anga_finder.find(
           jd1=self.daily_panchaangas[d].jd_sunrise, jd2=self.daily_panchaangas[d].jd_sunrise + 30, target_anga_in=13).to_tuple()
 
