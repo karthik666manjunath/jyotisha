@@ -77,6 +77,8 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     anga_num = fest_rule.timing.anga_number
     if month_type is None or month_num is None or anga_type is None or anga_num is None:
       return 
+    if month_type == rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR and anga_type == rules.RulesRepo.DAY_DIR:
+      return 
 
     if anga_type == 'tithi' and month_type == 'lunar_month' and anga_num == 1:
       # Shukla prathama tithis need to be dealt carefully, if e.g. the prathama tithi
@@ -171,7 +173,8 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
         fday = None
     return fday
 
-  def decide_aparaahna_vyaapti_priority(self, d0_angas, d1_angas, target_anga):
+  @classmethod
+  def decide_aparaahna_vyaapti_priority(cls, d0_angas, d1_angas, target_anga, ayanaamsha_id):
     if d0_angas.interval.name != 'aparaahna':
       return None
 
@@ -199,7 +202,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     elif d0_angas.end == q and d1_angas.start > q:
       fday = 0
     elif d0_angas.end == q and d1_angas.start == q:
-      anga_span = zodiac.AngaSpanFinder(ayanaamsha_id=self.ayanaamsha_id).find(jd1=d0_angas.interval.jd_start, jd2=d1_angas.interval.jd_end, target_anga_in=target_anga)
+      anga_span = zodiac.AngaSpanFinder(ayanaamsha_id=ayanaamsha_id).find(jd1=d0_angas.interval.jd_start, jd2=d1_angas.interval.jd_end, target_anga_in=target_anga)
       vyapti_1 = max(d0_angas.interval.jd_end - anga_span.jd_start, 0)
       vyapti_2 = max(anga_span.jd_end - d1_angas.interval.jd_start, 0)
       if vyapti_2 > vyapti_1:
@@ -266,7 +269,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
       elif priority == 'vyaapti':
         if kaala != 'aparaahna':
           raise ValueError('Unknown priority kAla combo "%s-%s" for %s! Check the rules!' % (priority, kaala, festival_name))
-        offset = self.decide_aparaahna_vyaapti_priority(d0_angas=d0_angas, d1_angas=d1_angas, target_anga=target_anga)
+        offset = self.decide_aparaahna_vyaapti_priority(d0_angas=d0_angas, d1_angas=d1_angas, target_anga=target_anga, ayanaamsha_id=self.ayanaamsha_id)
         if offset is None:
           raise ValueError('Could not calculate offset. kAla combo "%s-%s" for %s! Check the rules!' % (priority, kaala, festival_name))
         fday = d + offset

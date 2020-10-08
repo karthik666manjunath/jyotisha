@@ -117,6 +117,15 @@ def test_get_anga_data_1981_12_23():
     AngaSpan(anga=Anga(index=54, anga_type_id=AngaType.KARANA.name), jd_end=2444961.5992132244, jd_start=2444961.045), Interval(name=55, jd_end=2444962.1544454526, jd_start=2444961.045)][0].to_string(floating_point_precision=3)
 
 
+def test_festivals():
+  city = City.get_city_from_db('Bangalore')
+  panchaanga0 = daily.DailyPanchaanga(city=city, date=Date(year=2018, month=4, day=14))
+  panchaanga = daily.DailyPanchaanga(city=city, date=Date(year=2018, month=4, day=15))
+  panchaanga.assign_festivals(previous_day_panchaanga=panchaanga0, no_next_day_lookup=True)
+
+  assert "viSukkan2i" in panchaanga.festival_id_to_instance
+
+
 def test_get_lagna_data():
   city = City('X', 13.08784, 80.27847, 'Asia/Calcutta')
   from jyotisha.panchaanga.temporal import zodiac
