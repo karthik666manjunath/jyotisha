@@ -70,6 +70,9 @@ class Anga(common.JsonObject):
   def get_type(self):
     return NAME_TO_TYPE[self.anga_type_id]
 
+  def __str__(self):
+    return "%s: %02d" % (self.anga_type_id, self.index)
+
   def __sub__(self, other):
     """ 
     

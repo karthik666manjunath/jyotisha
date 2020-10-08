@@ -27,11 +27,10 @@ def test_solar_day():
     city=tests.spatio_temporal.chennai, date=Date(2018, 2, 12))
   numpy.testing.assert_approx_equal(panchaanga.solar_sidereal_date_sunset.month_transition, 2458162.3747)
 
-
   panchaanga = daily.DailyPanchaanga(
-    city=tests.spatio_temporal.chennai, date=Date(2018, 4, 13))
+    city=tests.spatio_temporal.chennai, date=Date(2018, 7, 13))
   assert panchaanga.solar_sidereal_date_sunset.month_transition is None
-  assert panchaanga.solar_sidereal_date_sunset.day == 30
+  assert panchaanga.solar_sidereal_date_sunset.day == 29
   assert panchaanga.solar_sidereal_date_sunset.month == 3
 
   panchaanga = daily.DailyPanchaanga(

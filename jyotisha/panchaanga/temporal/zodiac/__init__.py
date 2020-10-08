@@ -195,7 +195,7 @@ class NakshatraDivision(common.JsonObject):
 
 
 def longitude_to_right_ascension(longitude):
-  return (360 - longitude) / 360 * 24
+  return (360 - longitude) / 360 * 24.0
 
 
 def ecliptic_to_equatorial(longitude, latitude):

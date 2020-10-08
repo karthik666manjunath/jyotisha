@@ -19,6 +19,14 @@ def disabled_test_swe_ayanaamsha_api():
 
 
 def test_get_angam():
+  # Just before meSha sankrAnti
+  assert NakshatraDivision(jd=time.utc_gregorian_to_jd(Date(2018, 4, 13)), ayanaamsha_id=Ayanamsha.CHITRA_AT_180).get_anga(
+    anga_type=AngaType.SIDEREAL_MONTH).index == 12
+
+  assert NakshatraDivision(jd=time.utc_gregorian_to_jd(Date(2018, 7, 13)), ayanaamsha_id=Ayanamsha.CHITRA_AT_180).get_anga(
+    anga_type=AngaType.SIDEREAL_MONTH).index == 3
+
+  # 5:6:0.00 UT on December 23, 1981
   nd = NakshatraDivision(2444961.7125, ayanaamsha_id=Ayanamsha.CHITRA_AT_180)
   assert nd.get_anga(AngaType.NAKSHATRA) == 16
   assert nd.get_anga(AngaType.TITHI) == 28
@@ -49,12 +57,12 @@ def test_get_anga_span_tithi():
 
 def test_get_tithis_in_period():
   new_moon_jds = zodiac.get_tithis_in_period(jd_start=time.utc_gregorian_to_jd(Date(year=2020, month=1, day=1)), jd_end=time.utc_gregorian_to_jd(Date(year=2020, month=6, day=30)), tithi=30)
-  assert new_moon_jds == [2458872.36655025,
+  numpy.testing.assert_array_almost_equal(new_moon_jds, [2458872.36655025,
                           2458902.0647052005,
                           2458931.792117506,
                           2458961.5055956016,
                           2458991.1712410315,
-                          2459020.765607745]
+                          2459020.765607745], decimal=3)
 
 
 def test_get_previous_solstice():
