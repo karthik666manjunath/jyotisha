@@ -17,6 +17,7 @@ from jyotisha.panchaanga.temporal.month import LunarMonthAssigner
 from jyotisha.panchaanga.temporal.time import Timezone, Hour, Date
 from jyotisha.panchaanga.temporal.zodiac import Ayanamsha, NakshatraDivision
 from jyotisha.panchaanga.temporal.zodiac.angas import AngaType
+from jyotisha.util import zero_if_none, default_if_none
 from sanskrit_data.schema import common
 
 logging.basicConfig(level=logging.DEBUG,
@@ -304,7 +305,7 @@ class DailyPanchaanga(common.JsonObject):
     rule_set = rules.RulesCollection.get_cached(repos=tuple(self.computation_system.options.fest_repos))
     
     # Assign sunrise solar sidereal day fests. Current day's sunset solar month and day will generally hold at sunrise.
-    fest_dict = rule_set.get_month_anga_fests(month=self.solar_sidereal_date_sunset.month, anga_id=self.solar_sidereal_date_sunset.day, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.DAY_DIR)
+    fest_dict = rule_set.get_month_anga_fests(month=self.solar_sidereal_date_sunset.month, anga=self.solar_sidereal_date_sunset.day, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.DAY_DIR)
     for fest_id, fest in fest_dict.items():
       kaala = fest.timing.get_kaala()
       if kaala == "sunrise":
@@ -315,7 +316,7 @@ class DailyPanchaanga(common.JsonObject):
         raise ValueError("%s %s " % (fest_id, kaala))
 
     # Assign aruNodaya solar sidereal day fests. Previous day's sunset solar month and day will generally hold.
-    fest_dict = rule_set.get_month_anga_fests(month=previous_day_panchaanga.solar_sidereal_date_sunset.month, anga_id=previous_day_panchaanga.solar_sidereal_date_sunset.day, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.DAY_DIR)
+    fest_dict = rule_set.get_month_anga_fests(month=previous_day_panchaanga.solar_sidereal_date_sunset.month, anga=previous_day_panchaanga.solar_sidereal_date_sunset.day, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.DAY_DIR)
     for fest_id, fest in fest_dict.items():
       kaala = fest.timing.get_kaala()
       if kaala == "sunrise":
@@ -325,16 +326,22 @@ class DailyPanchaanga(common.JsonObject):
       else:
         raise ValueError("Unhandled - %s %s " % (fest_id, kaala))
 
-
-    return 
-    fest_dict = rule_set.get_month_anga_fests(month=self.solar_sidereal_date_sunset.month, anga_id=self.sunrise_day_angas.tithi_at_sunrise, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.TITHI_DIR)
+    return
+    fest_dict = rule_set.get_month_anga_fests(month=self.solar_sidereal_date_sunset.month, anga=self.sunrise_day_angas.tithi_at_sunrise.index, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.TITHI_DIR)
     for fest_id, fest in fest_dict.items():
-      if fest.timing.get_kaala() == "sunrise" and self.timing.get_priority() == "puurvaviddha" and fest_id not in previous_day_panchaanga.festival_id_to_instance:
+      if fest.timing.get_kaala() == "sunrise" and fest.timing.get_priority() == "puurvaviddha" and fest_id not in previous_day_panchaanga.festival_id_to_instance:
         self.festival_id_to_instance[fest_id] = FestivalInstance(name=fest.id)
 
-    # previous_day_non_sunrise_tithis = [previ]
+    non_sunrise_tithis = [x.anga for x in self.sunrise_day_angas.tithis_with_ends if zero_if_none(x.jd_start) > self.jd_sunrise and default_if_none(x.jd_end, self.jd_next_sunrise) < self.jd_next_sunrise]
+    for non_sunrise_tithi in non_sunrise_tithis:
+      fest_dict = rule_set.get_month_anga_fests(month=self.solar_sidereal_date_sunset.month, anga=non_sunrise_tithi.index, month_type=rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR, anga_type_id=rules.RulesRepo.TITHI_DIR)
+      for fest_id, fest in fest_dict.items():
+        if fest.timing.get_kaala() == "sunrise" and fest.timing.get_priority() == "puurvaviddha":
+          self.festival_id_to_instance[fest_id] = FestivalInstance(name=fest.id)
+    return
 
-# Essential for depickling to work.
+
+  # Essential for depickling to work.
 common.update_json_class_index(sys.modules[__name__])
 # logging.debug(common.json_class_index)
 
