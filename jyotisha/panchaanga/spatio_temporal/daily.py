@@ -300,6 +300,7 @@ class DailyPanchaanga(common.JsonObject):
     return angas_list
 
   def assign_festivals(self, previous_day_panchaanga, no_next_day_lookup=True):
+    return # Disable for now.
     if previous_day_panchaanga is None:
       return
     rule_set = rules.RulesCollection.get_cached(repos=tuple(self.computation_system.options.fest_repos))

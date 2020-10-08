@@ -139,7 +139,9 @@ class Anga(common.JsonObject):
     if isinstance(other, Number):
       return self.index == other
     else:
-      return super(Anga, self).__eq__(other=other)
+      # The below would be too slow.
+      # return super(Anga, self).__eq__(other=other)
+      return self.index == other.index
 
   def __hash__(self):
     return super(Anga, self).__hash__()
