@@ -276,11 +276,9 @@ class AngaSpanFinder(JsonObject):
 
     anga_interval.jd_start = self.find_anga_start_between(jd1=jd1, jd2=jd2, target_anga=target_anga)
 
-    if anga_interval.jd_start is None:
-      return AngaSpan(jd_start=None, jd_end=None, anga=target_anga)  # If it doesn't start, we don't care if it ends!
-
     next_anga = target_anga + 1
-    anga_interval.jd_end = self.find_anga_start_between(jd1=anga_interval.jd_start, jd2=jd2, target_anga=next_anga)
+    jd_start  = jd1 if anga_interval.jd_start is None else anga_interval.jd_start
+    anga_interval.jd_end = self.find_anga_start_between(jd1=jd_start, jd2=jd2, target_anga=next_anga)
     return anga_interval
 
 

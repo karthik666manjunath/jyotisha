@@ -5,7 +5,7 @@ import sys
 from math import floor, modf
 
 from jyotisha.panchaanga.temporal.festival import rules
-from jyotisha.panchaanga.temporal.zodiac import angas
+from jyotisha.panchaanga.temporal.zodiac import angas, AngaSpanFinder
 from scipy.optimize import brentq
 
 from jyotisha.panchaanga.spatio_temporal import City
@@ -293,61 +293,12 @@ class DailyPanchaanga(common.JsonObject):
     anga_tmrw = NakshatraDivision(self.jd_next_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(anga_type)
   
     angas_list = []
-  
-    num_angas_today = (anga_tmrw - anga_now)\
-  
-    if num_angas_today == 0:
-      # The anga does not change until sunrise tomorrow
-      return [AngaSpan(anga=anga_now, jd_end=None, jd_start=None)]
-    else:
-      lmoon = Graha.singleton(Graha.MOON).get_longitude(self.jd_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id)
-  
-      lsun = Graha.singleton(Graha.SUN).get_longitude(self.jd_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id)
-  
-      lmoon_tmrw = Graha.singleton(Graha.MOON).get_longitude(self.jd_next_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id)
-  
-      lsun_tmrw = Graha.singleton(Graha.SUN).get_longitude(self.jd_next_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id)
-  
-      for i in range(num_angas_today):
-        anga_remaining = arc_len * (i + 1) - (((lmoon * w_moon +
-                                                lsun * w_sun) % 360) % arc_len)
-  
-        # First compute approximate end time by essentially assuming
-        # the speed of the moon and the sun to be constant
-        # throughout the day. Therefore, anga_remaining is computed
-        # just based on the difference in longitudes for sun and
-        # moon today and tomorrow.
-        approx_end = self.jd_sunrise + anga_remaining / (((lmoon_tmrw - lmoon) % 360) * w_moon +
-                                                    ((lsun_tmrw - lsun) % 360) * w_sun)
-  
-        # Initial guess value for the exact end time of the anga
-        x0 = approx_end
-  
-        # What is the target (next) anga? It is needed to be passed
-        # to get_anga_float for zero-finding. If the target anga
-        # is say, 12, then we need to subtract 12 from the value
-        # returned by get_anga_float, so that this function can be
-        # passed as is to a zero-finding method like brentq or
-        # newton. Since we have a good x0 guess, it is easy to
-        # bracket the function in an interval where the function
-        # changes sign. Therefore, brenth can be used, as suggested
-        # in the scipy documentation.
-        target = anga_now + 1
-  
-        # Approximate error in calculation of end time -- arbitrary
-        # used to bracket the root, for brenth
-        TDELTA = 0.05
-        try:
-          def f(x):
-            return NakshatraDivision(x, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga_float(anga_type=anga_type) - target.index
-  
-          # noinspection PyTypeChecker
-          t_act = brentq(f, x0 - TDELTA, x0 + TDELTA)
-        except ValueError:
-          logging.debug('Unable to bracket! Using approximate t_end itself.')
-          # logging.warning(locals())
-          t_act = approx_end
-        angas_list.extend([AngaSpan(anga=anga_now + i, jd_end=t_act, jd_start=None)])
+    span_finder = AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id)
+    while anga_now != anga_tmrw + 1:
+      anga_span = span_finder.find(jd1=self.jd_sunrise-1, jd2=self.jd_next_sunrise+1, target_anga_in=anga_now)
+      if not (anga_span.jd_end is None and anga_span.jd_start is None) and (anga_span.jd_end is None or anga_span.jd_end >= self.jd_sunrise) or (anga_span.jd_start is None or anga_span.jd_start < self.jd_next_sunrise):
+        angas_list.append(anga_span)
+      anga_now = anga_now + 1
     return angas_list
 
   def assign_festivals(self, previous_day_panchaanga, no_next_day_lookup=True):
