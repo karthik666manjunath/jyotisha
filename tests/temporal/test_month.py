@@ -16,9 +16,17 @@ def test_MultiNewMoonAssigner():
   panchaanga = daily.DailyPanchaanga(
     # dvitIyA following amAvAsyA - can trip up previous day panchAnga utilization logic.
     city=tests.spatio_temporal.chennai, date=Date(2018, 7, 14), computation_system=ComputationSystem.MULTI_NEW_MOON_SOLAR_MONTH_ADHIKA__CHITRA_180, previous_day_panchaanga=panchaanga)
-  assert panchaanga.lunar_month_sunrise.index == 3
+  assert panchaanga.lunar_month_sunrise.index == 4
+
+  # dvitIyA following amAvAsyA  
+  # The same, forcing fresh computation.
+  panchaanga = daily.DailyPanchaanga(
+    # dvitIyA following amAvAsyA - can trip up previous day panchAnga utilization logic.
+    city=tests.spatio_temporal.chennai, date=Date(2018, 7, 14), computation_system=ComputationSystem.MULTI_NEW_MOON_SOLAR_MONTH_ADHIKA__CHITRA_180, previous_day_panchaanga=None)
+  assert panchaanga.lunar_month_sunrise.index == 4
 
 
+  # dvitIyA following amAvAsyA
   # Online : https://www.drikpanchang.com/panchang/month-panchang.html?date=21/07/2018
   panchaanga = daily.DailyPanchaanga(
     city=tests.spatio_temporal.chennai, date=Date(2018, 7, 21), computation_system=ComputationSystem.MULTI_NEW_MOON_SOLAR_MONTH_ADHIKA__CHITRA_180)
