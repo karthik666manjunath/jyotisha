@@ -53,9 +53,9 @@ class DayAngas(common.JsonObject):
     return anga_spans
 
   def find_anga(self, anga_type, anga_id):
-    for anga in self.get_angas_with_ends(anga_type=anga_type):
-      if anga.name == anga_id:
-        return anga
+    for anga_span in self.get_angas_with_ends(anga_type=anga_type):
+      if anga_span.anga == anga_id:
+        return anga_span.anga
     return None
 
 

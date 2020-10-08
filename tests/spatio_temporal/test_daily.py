@@ -79,13 +79,18 @@ def test_jd_start_DST_orinda_ca():
   assert daily.DailyPanchaanga.from_city_and_julian_day(city=city,
                                                         julian_day=2458552.8333333335).julian_day_start == 2458552.8333333335
 
-
 def test_get_lagna_float():
   city = City.get_city_from_db('Chennai')
   numpy.testing.assert_allclose(
     city.get_lagna_float(
       2444961.7125), 10.353595502472984, rtol=1e-4)
 
+
+def test_find_anga():
+  city = City.get_city_from_db('Bangalore')
+  panchaanga = daily.DailyPanchaanga(city=city, date=Date(year=2018, month=7, day=13))
+  assert panchaanga.sunrise_day_angas.find_anga(anga_id=1, anga_type=AngaType.TITHI) is not None
+  
 
 def test_tithi():
   city = City.get_city_from_db('Bangalore')
@@ -101,15 +106,15 @@ def test_get_anga_data_1981_12_23():
     AngaSpan(anga=Anga(index=27, anga_type_id=AngaType.TITHI.name), jd_end=2444961.5992132244, jd_start=None)][0].to_string(floating_point_precision=3)
   
   # 5:55:34.39 UT on December 23, 1981
-  assert panchaanga.sunrise_day_angas.nakshatras_with_ends[0].to_string(floating_point_precision=3) == [AngaSpan(anga=Anga(index=16, anga_type_id=AngaType.NAKSHATRA.name), jd_end=2444961.746925843, jd_start=None)][0].to_string(floating_point_precision=3)
+  assert panchaanga.sunrise_day_angas.nakshatras_with_ends[0].to_string(floating_point_precision=3) == [AngaSpan(anga=Anga(index=16, anga_type_id=AngaType.NAKSHATRA.name), jd_end=2444961.746925843, jd_start=2444960.622,)][0].to_string(floating_point_precision=3)
   
   # 16:23:10.51 UT on December 23, 1981
   assert panchaanga.sunrise_day_angas.yogas_with_ends[0].to_string(floating_point_precision=3)[0] == [
-    AngaSpan(anga=Anga(index=8, anga_type_id=AngaType.YOGA.name), jd_end=2444962.18276057, jd_start=None)][0].to_string(floating_point_precision=3)[0]
+    AngaSpan(anga=Anga(index=8, anga_type_id=AngaType.YOGA.name), jd_end=2444962.18276057, jd_start=2444961.045)][0].to_string(floating_point_precision=3)[0]
 
   # 15:42:24.09 UT on December 23, 1981
   assert panchaanga.sunrise_day_angas.karanas_with_ends[0].to_string(floating_point_precision=3) == [
-    AngaSpan(anga=Anga(index=54, anga_type_id=AngaType.KARANA.name), jd_end=2444961.5992132244, jd_start=None), Interval(name=55, jd_end=2444962.1544454526, jd_start=None)][0].to_string(floating_point_precision=3)
+    AngaSpan(anga=Anga(index=54, anga_type_id=AngaType.KARANA.name), jd_end=2444961.5992132244, jd_start=2444961.045), Interval(name=55, jd_end=2444962.1544454526, jd_start=2444961.045)][0].to_string(floating_point_precision=3)
 
 
 def test_get_lagna_data():
