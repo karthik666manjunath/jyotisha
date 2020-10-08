@@ -79,12 +79,12 @@ class SolsticePostDark10AdhikaAssigner(LunarMonthAssigner):
   @classmethod
   def _month_from_previous_jd_month(cls, jd, prev_jd, prev_jd_month):
     tithi_1_jds = zodiac.get_tithis_in_period(jd_start=prev_jd, jd_end=jd, tithi=1)
-    is_prev_month_adhika = str(prev_jd_month).endswith(".5")
+    is_prev_month_adhika = str(prev_jd_month.index).endswith(".5")
     if is_prev_month_adhika:
       lunar_month = prev_jd_month + max(0, len(tithi_1_jds) - 0.5)
     else:
       lunar_month = prev_jd_month + len(tithi_1_jds)
-    return lunar_month % 12
+    return lunar_month
 
   @classmethod
   def _get_solstice_lunar_month(cls, solstice_tropical_month_span):
@@ -108,7 +108,7 @@ class SolsticePostDark10AdhikaAssigner(LunarMonthAssigner):
     """
     solstice_tropical_month_span = zodiac.get_previous_solstice(jd=daily_panchaanga.jd_sunrise)
     solstice_lunar_month = SolsticePostDark10AdhikaAssigner._get_solstice_lunar_month(solstice_tropical_month_span=solstice_tropical_month_span)
-    is_solstice_lunar_month_adhika = str(solstice_lunar_month).endswith(".5")
+    is_solstice_lunar_month_adhika = str(solstice_lunar_month.index).endswith(".5")
     if is_solstice_lunar_month_adhika:
       lunar_month = self._month_from_previous_jd_month(jd=daily_panchaanga.jd_sunrise, prev_jd=solstice_tropical_month_span.jd_start, prev_jd_month=solstice_lunar_month )
       return lunar_month
