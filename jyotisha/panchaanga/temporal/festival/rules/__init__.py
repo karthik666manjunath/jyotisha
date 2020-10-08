@@ -69,6 +69,12 @@ class HinduCalendarEventTiming(common.JsonObject):
     timing.validate_schema()
     return timing
 
+  def get_kaala(self):
+    return "sunrise" if self.kaala is None else self.kaala
+
+  def get_priority(self):
+    return "puurvaviddha" if self.priority is None else self.priority
+    
 
 # noinspection PyUnresolvedReferences
 class HinduCalendarEvent(common.JsonObject):
@@ -233,6 +239,12 @@ class RulesCollection(common.JsonObject):
     self.tree = collection_helper.tree_maker(leaves=self.name_to_rule.values(), path_fn=lambda x: x.get_storage_file_name(base_dir="").replace("__info.toml", ""))
     # for fest_name, fest in self.name_to_rule.items():
     #   date = BasicDate(month=fest.timing.month, day=month.timing.month_number)
+
+  def get_month_anga_fests(self, month_type, month, anga_type_id, anga_id):
+    try:
+      return self.tree[month_type.lower()][anga_type_id.lower()]["%02d" % month]["%02d" % anga_id]
+    except KeyError:
+      return {}
 
 
 # Essential for depickling to work.
