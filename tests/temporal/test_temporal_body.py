@@ -10,6 +10,7 @@ logging.basicConfig(
 
 
 def test_graha_get_longitude():
+  #  13:59:59.99 UT on November 11, 2018
   assert Graha.singleton(Graha.SUN).get_longitude(jd=2458434.083333251) == 229.12286985575702
 
 

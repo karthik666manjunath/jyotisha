@@ -27,6 +27,11 @@ class Interval(common.JsonObject):
   def to_tuple(self):
     return (self.jd_start, self.jd_end)
 
+  def __str__(self):
+    from jyotisha.panchaanga.temporal import time
+    return "%s: (%s, %s)" % ("" if self.name is None else self.name, time.ist_timezone.julian_day_to_local_time_str(jd=self.jd_start),
+    time.ist_timezone.julian_day_to_local_time_str(jd=self.jd_end))
+
   def get_boundary_angas(self, anga_type, ayanaamsha_id):
     from jyotisha.panchaanga.temporal.zodiac import NakshatraDivision
     def f(x): 
@@ -42,6 +47,8 @@ class AngaSpan(Interval):
     super(AngaSpan, self).__init__(jd_start=jd_start, jd_end=jd_end, name=None)
     self.anga = anga
 
+  def __str__(self):
+    return "%s - %s" % (str(self.anga),  super(AngaSpan, self).__str__())
 
 class DayLengthBasedPeriods(common.JsonObject):
   def __init__(self, jd_previous_sunset, jd_sunrise, jd_sunset, jd_next_sunrise, weekday):
