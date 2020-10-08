@@ -81,8 +81,10 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     anga_num = fest_rule.timing.anga_number
     if month_type is None or month_num is None or anga_type is None or anga_num is None:
       return 
-    if month_type == rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR and anga_type == rules.RulesRepo.DAY_DIR:
-      return 
+    if month_type == rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR and anga_type in (rules.RulesRepo.DAY_DIR):
+      return
+    # if month_type == rules.RulesRepo.SIDEREAL_SOLAR_MONTH_DIR and anga_type in (rules.RulesRepo.TITHI_DIR) and fest_rule.timing.get_priority() == "puurvaviddha" and fest_rule.timing.get_kaala() == "sunrise":
+    #   return 
 
     if anga_type == 'tithi' and month_type == 'lunar_month' and anga_num == 1:
       # Shukla prathama tithis need to be dealt carefully, if e.g. the prathama tithi

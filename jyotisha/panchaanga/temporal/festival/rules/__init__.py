@@ -240,9 +240,12 @@ class RulesCollection(common.JsonObject):
     # for fest_name, fest in self.name_to_rule.items():
     #   date = BasicDate(month=fest.timing.month, day=month.timing.month_number)
 
-  def get_month_anga_fests(self, month_type, month, anga_type_id, anga_id):
+  def get_month_anga_fests(self, month_type, month, anga_type_id, anga):
+    from jyotisha.panchaanga.temporal.zodiac import Anga
+    if isinstance(anga, Anga):
+      anga = anga.index
     try:
-      return self.tree[month_type.lower()][anga_type_id.lower()]["%02d" % month]["%02d" % anga_id]
+      return self.tree[month_type.lower()][anga_type_id.lower()]["%02d" % month]["%02d" % anga]
     except KeyError:
       return {}
 
