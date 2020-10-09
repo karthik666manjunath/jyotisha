@@ -27,9 +27,15 @@ def test_hashability():
   set([a1, a2, a3])
   
 
-
 def test_get_name():
   a1 = angas.Anga(index=27, anga_type_id=angas.AngaType.NAKSHATRA.name)
   a2 = angas.Anga(index=1, anga_type_id=angas.AngaType.NAKSHATRA.name)
   assert a1.get_name() == "rEvatI"
   assert a2.get_name() == "azvinI"
+
+
+def test_efficiency():
+  a1 = angas.Anga(index=27, anga_type_id=angas.AngaType.NAKSHATRA.name)
+  a2 = angas.Anga(index=1, anga_type_id=angas.AngaType.NAKSHATRA.name)
+  for i in range(1,99999):
+    a1.index == a2.index

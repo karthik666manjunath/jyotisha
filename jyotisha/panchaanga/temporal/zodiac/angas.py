@@ -97,21 +97,17 @@ class Anga(common.JsonObject):
       return gap
 
   def __mod__(self, other):
-    if isinstance(other, Number):
-      # We don't construct an anga object to avoid confusion between shukla and kRShNa paxa tithis. 
-      return self.index % other
-    else:
-      raise ValueError((self, other))
+    # We avoid if isinstance(other, Number) for efficiency.
+    # We don't construct an anga object to avoid confusion between shukla and kRShNa paxa tithis. 
+    return self.index % other
   
   def __add__(self, other):
-    if isinstance(other, Number):
-      if other < 1:
-        offset_index = (self.index + other) % self.get_type().num_angas
-      else:
-        offset_index = (self.index - 1 + other) % self.get_type().num_angas + 1
-      return Anga(index=offset_index, anga_type_id=self.anga_type_id)
+    # We avoid if isinstance(other, Number) for efficiency.
+    if other < 1:
+      offset_index = (self.index + other) % self.get_type().num_angas
     else:
-      raise ValueError(other)
+      offset_index = (self.index - 1 + other) % self.get_type().num_angas + 1
+    return Anga(index=offset_index, anga_type_id=self.anga_type_id)
 
   def __lt__(self, other):
     if isinstance(other, Number):
@@ -136,12 +132,15 @@ class Anga(common.JsonObject):
     return self < other or self == other
 
   def __eq__(self, other):
-    if isinstance(other, Number):
-      return self.index == other
-    else:
-      # The below would be too slow.
-      # return super(Anga, self).__eq__(other=other)
+    # For efficiency we avoid:
+    # if isinstance(other, Number):
+    #   return self.index == other
+    # The below would be too slow.
+    # return super(Anga, self).__eq__(other=other)
+    try:
       return self.index == other.index
+    except AttributeError:
+      return self.index == other
 
   def __hash__(self):
     return super(Anga, self).__hash__()
