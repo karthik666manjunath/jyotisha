@@ -6,6 +6,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import methodtools
+from timebudget import timebudget
+
 from sanskrit_data.schema import common
 
 
@@ -231,6 +233,8 @@ class RulesCollection(common.JsonObject):
   def get_cached(cls, repos):
     return RulesCollection(repos=repos)
 
+
+  @timebudget
   def set_rule_dicts(self):
     for repo in self.repos:
       self.name_to_rule.update(get_festival_rules_map(

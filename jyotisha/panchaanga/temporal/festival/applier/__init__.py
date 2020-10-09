@@ -219,6 +219,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
       fday = None
     return fday
 
+  @timebudget
   def assign_tithi_yoga_nakshatra_fest(self, fest_rule, d):
     """
     
