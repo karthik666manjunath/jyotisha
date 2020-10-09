@@ -1,7 +1,6 @@
 from numbers import Number
 
 from timebudget import timebudget
-
 from jyotisha import names
 from jyotisha.names import NAMES
 from sanskrit_data.schema import common
@@ -113,7 +112,6 @@ class Anga(common.JsonObject):
       offset_index = (self.index - 1 + other) % self.get_type().num_angas + 1
     return Anga(index=offset_index, anga_type_id=self.anga_type_id)
 
-  @timebudget
   def __lt__(self, other):
     if isinstance(other, Number):
       return self.index < other

@@ -7,7 +7,6 @@ from pathlib import Path
 
 import methodtools
 from timebudget import timebudget
-
 from sanskrit_data.schema import common
 
 
@@ -232,7 +231,6 @@ class RulesCollection(common.JsonObject):
   @classmethod
   def get_cached(cls, repos):
     return RulesCollection(repos=repos)
-
 
   @timebudget
   def set_rule_dicts(self):
