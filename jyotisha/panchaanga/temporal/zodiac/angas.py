@@ -42,6 +42,11 @@ class AngaType(JsonObject):
     NAME_TO_TYPE[self.name] = self
 
 
+  def __eq__(self, other):
+    # Overriding for speed.
+    return self.name == other.name
+
+
 AngaType.TITHI = AngaType(name='TITHI', num_angas=30, weight_moon=1, weight_sun=-1)
 AngaType.TITHI_PADA = AngaType(name='TITHI_PADA', num_angas=120, weight_moon=1, weight_sun=-1)
 AngaType.NAKSHATRA = AngaType(name='NAKSHATRA', num_angas=27, weight_moon=1, weight_sun=0)
@@ -56,6 +61,7 @@ AngaType.SOLAR_NAKSH_PADA = AngaType(name='SOLAR_NAKSH_PADA', num_angas=108, wei
 
 class Anga(common.JsonObject):
   def __init__(self, index, anga_type_id):
+    super(Anga, self).__init__()
     self.index = index
     self.anga_type_id = anga_type_id
 
@@ -83,8 +89,6 @@ class Anga(common.JsonObject):
       - nakshatra 1 - nakshatra 27 = 1 (not -26).
       - nakshatra 27 - nakshatra 1 = -1 (not 26).
     
-    :param x: 
-    :param y: 
     :return: 
     """
     if isinstance(other, Number):
@@ -138,14 +142,9 @@ class Anga(common.JsonObject):
   @timebudget
   def __eq__(self, other):
     # For efficiency we avoid:
-    # if isinstance(other, Number):
-    #   return self.index == other
-    # The below would be too slow.
-    # return super(Anga, self).__eq__(other=other)
-    try:
-      return self.index == other.index
-    except AttributeError:
+    if isinstance(other, Number):
       return self.index == other
+    return self.index == other.index
 
   def __hash__(self):
     return super(Anga, self).__hash__()
