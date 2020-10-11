@@ -9,11 +9,14 @@ import swisseph as swe
 from jyotisha.panchaanga.temporal.body import Graha
 from jyotisha.panchaanga.temporal.interval import Interval, AngaSpan
 from jyotisha.panchaanga.temporal.zodiac.angas import AngaType, Anga
+from jyotisha.util import default_if_none
 from sanskrit_data.schema import common
 from sanskrit_data.schema.common import JsonObject
 from scipy.optimize import brentq
 
 # noinspection SpellCheckingInspection
+from timebudget import timebudget
+
 logging.basicConfig(
   level=logging.DEBUG,
   format="%(levelname)s: %(asctime)s {%(filename)s:%(lineno)d}: %(message)s "
@@ -210,6 +213,11 @@ class AngaSpanFinder(JsonObject):
     self.ayanaamsha_id = ayanaamsha_id
     self.default_anga_type = default_anga_type
 
+  @methodtools.lru_cache(maxsize=None)
+  @classmethod
+  def get_cached(cls, ayanaamsha_id, anga_type):
+    return AngaSpanFinder(ayanaamsha_id=ayanaamsha_id, default_anga_type=anga_type)
+
   def _get_anga(self, jd, anga_type):
     return NakshatraDivision(jd, ayanaamsha_id=self.ayanaamsha_id).get_anga( anga_type=anga_type)
 
@@ -249,6 +257,7 @@ class AngaSpanFinder(JsonObject):
       jd_now = min(jd_now + min_step, jd2)
     return jd_start
 
+  @timebudget
   def find(self, jd1: float, jd2: float, target_anga_in) -> Interval:
     """Computes anga spans for sunrise_day_angas such as tithi, nakshatra, yoga
         and karana.
@@ -279,29 +288,50 @@ class AngaSpanFinder(JsonObject):
     next_anga = target_anga + 1
     jd_start  = jd1 if anga_interval.jd_start is None else anga_interval.jd_start
     anga_interval.jd_end = self.find_anga_start_between(jd1=jd_start, jd2=jd2, target_anga=next_anga)
+    if anga_interval.jd_start is None and anga_interval.jd_end is None:
+      if self._get_anga(jd=jd1, anga_type=target_anga.get_type()) != target_anga_in:
+        return None
     return anga_interval
+
+  @timebudget
+  def get_spans_in_period(self, jd_start, jd_end, target_anga_id):
+    if jd_start > jd_end:
+      raise ValueError((jd_start, jd_end))
+    jd_bracket_L = jd_start
+    spans = []
+    while jd_bracket_L <= jd_end:
+      # A whole period plus 4 angas beyond jd_bracket_L, which might be 2 angas behind the target anga.
+      jd_bracket_R = min(jd_bracket_L + (1 + 4.0/self.anga_type.num_angas) * self.anga_type.mean_period_days, jd_end)
+      span = self.find(
+        jd1=jd_bracket_L, jd2=jd_bracket_R,
+        target_anga_id=target_anga_id)
+      if span is None:
+        break
+      else:
+        spans.append(span)
+        # A whole period minus 2 angas as the next seek boundary
+        jd_bracket_L = default_if_none(span.jd_start, jd_bracket_L) + self.anga_type.mean_period_days * (1 - 2.0 / self.anga_type.num_angas)
+    return spans
+
+  @timebudget
+  def get_all_angas_in_period(self, jd1, jd2):
+    spans = []
+    jd_start = None
+    anga_now = self._get_anga(jd=jd1, anga_type=self.default_anga_type)
+    while default_if_none(jd_start, jd1) <= jd2:
+      next_anga = anga_now + 1
+      jd_end = self.find_anga_start_between(target_anga=next_anga, jd1=default_if_none(jd_start, jd1), jd2=jd2)
+      spans.append(AngaSpan(jd_start=jd_start, jd_end=jd_end, anga=anga_now))
+      if jd_end is None:
+        break
+      else:
+        anga_now = next_anga
+        jd_start = jd_end
+    return spans
 
 
 # Essential for depickling to work.
 common.update_json_class_index(sys.modules[__name__])
-
-
-def get_tithis_in_period(jd_start, jd_end, tithi):
-  if jd_start > jd_end:
-    raise ValueError((jd_start, jd_end))
-  jd = jd_start
-  anga_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.TITHI)
-  new_moon_jds = []
-  while jd < jd_end:
-    new_moon = anga_finder.find(
-      jd1=jd, jd2=jd + 30,
-      target_anga_in=tithi)
-    if new_moon is None:
-      raise Exception("Could not find a new moon between %f and %f" % (jd, jd+30))
-    if new_moon.jd_start < jd_end:
-      new_moon_jds.append(new_moon.jd_start)
-    jd = new_moon.jd_start + 28
-  return new_moon_jds
 
 
 def get_tropical_month(jd):

@@ -148,19 +148,19 @@ class DailyPanchaanga(common.JsonObject):
 
     if force_recomputation or self.sunrise_day_angas is None:
       self.sunrise_day_angas = DayAngas()
-      self.sunrise_day_angas.tithis_with_ends = self.get_sunrise_day_anga_spans(
-        angas.AngaType.TITHI)
+      # Deliberately passing ASHVINI_STARTING_0 below since it is cheapest. Tithi is independent of ayanAmsha. 
+      self.sunrise_day_angas.tithis_with_ends = AngaSpanFinder.get_cached(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, anga_type=zodiac.AngaType.TITHI).get_all_angas_in_period(jd1=self.jd_sunrise, jd2=self.jd_next_sunrise)
       self.sunrise_day_angas.tithi_at_sunrise = self.sunrise_day_angas.tithis_with_ends[0].anga
-      self.sunrise_day_angas.nakshatras_with_ends = self.get_sunrise_day_anga_spans(
-        angas.AngaType.NAKSHATRA)
+      
+      self.sunrise_day_angas.nakshatras_with_ends = AngaSpanFinder.get_cached(ayanaamsha_id=self.computation_system.ayanaamsha_id, anga_type=zodiac.AngaType.NAKSHATRA).get_all_angas_in_period(jd1=self.jd_sunrise, jd2=self.jd_next_sunrise)
       self.sunrise_day_angas.nakshatra_at_sunrise = self.sunrise_day_angas.nakshatras_with_ends[0].anga
-      self.sunrise_day_angas.yogas_with_ends = self.get_sunrise_day_anga_spans(
-        angas.AngaType.YOGA)
+      
+      self.sunrise_day_angas.yogas_with_ends = AngaSpanFinder.get_cached(ayanaamsha_id=self.computation_system.ayanaamsha_id, anga_type=zodiac.AngaType.YOGA).get_all_angas_in_period(jd1=self.jd_sunrise, jd2=self.jd_next_sunrise)
       self.sunrise_day_angas.yoga_at_sunrise = self.sunrise_day_angas.yogas_with_ends[0].anga
-      self.sunrise_day_angas.karanas_with_ends = self.get_sunrise_day_anga_spans(
-        angas.AngaType.KARANA)
-      self.sunrise_day_angas.raashis_with_ends = self.get_sunrise_day_anga_spans(
-        angas.AngaType.RASHI)
+      
+      self.sunrise_day_angas.karanas_with_ends = AngaSpanFinder.get_cached(ayanaamsha_id=self.computation_system.ayanaamsha_id, anga_type=zodiac.AngaType.KARANA).get_all_angas_in_period(jd1=self.jd_sunrise, jd2=self.jd_next_sunrise)
+      
+      self.sunrise_day_angas.raashis_with_ends = AngaSpanFinder.get_cached(ayanaamsha_id=self.computation_system.ayanaamsha_id, anga_type=zodiac.AngaType.RASHI).get_all_angas_in_period(jd1=self.jd_sunrise, jd2=self.jd_next_sunrise)
 
   def compute_tb_muhuurtas(self):
     """ Computes muhuurta-s according to taittiriiya brAhmaNa.
@@ -268,36 +268,6 @@ class DailyPanchaanga(common.JsonObject):
       if lagna_end_time < self.jd_next_sunrise:
         self.lagna_data.append((lagna, lagna_end_time))
     return self.lagna_data
-
-  def get_sunrise_day_anga_spans(self, anga_type):
-    """Computes anga data for sunrise_day_angas such as tithi, nakshatra, yoga
-    and karana.
-  
-    Args:
-        :param anga_type: TITHI, nakshatra, YOGA, KARANA, SIDEREAL_MONTH, SOLAR_NAKSH
-  
-    Returns:
-      tuple: A tuple comprising
-        anga_sunrise: The anga that prevails as sunrise
-        anga_data: a list of (int, float) tuples detailing the sunrise_day_angas
-        for the day and their end-times (Julian day)
-    """
-    w_moon = anga_type.weight_moon
-    w_sun = anga_type.weight_sun
-    arc_len = anga_type.arc_length
-  
-    # Compute anga details
-    anga_now = NakshatraDivision(self.jd_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(anga_type)
-    anga_tmrw = NakshatraDivision(self.jd_next_sunrise, ayanaamsha_id=self.computation_system.ayanaamsha_id).get_anga(anga_type)
-  
-    angas_list = []
-    span_finder = AngaSpanFinder(ayanaamsha_id=self.computation_system.ayanaamsha_id)
-    while anga_now != anga_tmrw + 1:
-      anga_span = span_finder.find(jd1=self.jd_sunrise-1, jd2=self.jd_next_sunrise+1, target_anga_in=anga_now)
-      if not (anga_span.jd_end is None and anga_span.jd_start is None) and (anga_span.jd_end is None or anga_span.jd_end >= self.jd_sunrise) or (anga_span.jd_start is None or anga_span.jd_start < self.jd_next_sunrise):
-        angas_list.append(anga_span)
-      anga_now = anga_now + 1
-    return angas_list
 
   def assign_festivals(self, previous_day_panchaanga, no_next_day_lookup=True):
     return # Disable for now.

@@ -41,7 +41,7 @@ class MultiNewmoonSolarMonthAdhikaAssigner(LunarMonthAssigner):
     :return: 
     """
     # tithi_at_sunrise gives a rough indication of the number of days since last new moon. We now find a more precise interval below.
-    anga_finder = zodiac.AngaSpanFinder(ayanaamsha_id=self.ayanaamsha_id, default_anga_type=AngaType.TITHI)
+    anga_finder = zodiac.AngaSpanFinder.get_cached(ayanaamsha_id=self.ayanaamsha_id, anga_type=zodiac.AngaType.TITHI)
 
     last_new_moon = anga_finder.find(
       jd1=daily_panchaanga.jd_sunrise - daily_panchaanga.sunrise_day_angas.tithi_at_sunrise.index - 3, jd2=daily_panchaanga.jd_sunrise - daily_panchaanga.sunrise_day_angas.tithi_at_sunrise.index + 3, target_anga_in=30)
@@ -119,7 +119,8 @@ class SolsticePostDark10AdhikaAssigner(LunarMonthAssigner):
       if tropical_month in [3, 9]:
         anga_span_finder = AngaSpanFinder(ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0, default_anga_type=AngaType.SIDEREAL_MONTH)
         solstice_tropical_month_span = anga_span_finder.find(jd1=daily_panchaanga.jd_sunrise, jd2=daily_panchaanga.jd_sunrise + 32, target_anga_in=daily_panchaanga.tropical_date_sunset.month + 1)
-        tithi_1_jds = zodiac.get_tithis_in_period(jd_start=daily_panchaanga.jd_sunrise, jd_end=solstice_tropical_month_span.jd_start, tithi=1)
+        span_finder = AngaSpanFinder.get_cached(anga_type=AngaType.TITHI, ayanaamsha_id=Ayanamsha.ASHVINI_STARTING_0)
+        tithi_1_jds = span_finder.get_spans_in_period(jd_start=daily_panchaanga.jd_sunrise, jd_end=solstice_tropical_month_span.jd_start, target_anga_id=1)
         if len(tithi_1_jds) == 0:
           solstice_lunar_month = SolsticePostDark10AdhikaAssigner._get_solstice_lunar_month(solstice_tropical_month_span=solstice_tropical_month_span)
           return solstice_lunar_month
