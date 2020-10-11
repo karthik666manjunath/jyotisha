@@ -141,7 +141,7 @@ class NakshatraDivision(common.JsonObject):
         int anga
     """
 
-    return Anga(index=int(1 + floor(self.get_anga_float(anga_type))), anga_type_id=anga_type.name)
+    return Anga.get_cached(index=int(1 + floor(self.get_anga_float(anga_type))), anga_type_id=anga_type.name)
 
   def get_all_angas(self):
     """Compute various properties of the time based on lunar and solar longitudes, division of a circle into a certain number of degrees (arc_len).
@@ -265,7 +265,7 @@ class AngaSpanFinder(JsonObject):
     """
     if isinstance(target_anga_in, Number):
       # TODO: Remove this backward compatibility fix
-      target_anga = Anga(index=target_anga_in, anga_type_id=self.default_anga_type.name)
+      target_anga = Anga.get_cached(index=target_anga_in, anga_type_id=self.default_anga_type.name)
     else:
       target_anga = target_anga_in
     num_angas = int(360.0 / target_anga.get_type().arc_length)

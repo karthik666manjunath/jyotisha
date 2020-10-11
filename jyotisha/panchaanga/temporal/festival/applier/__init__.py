@@ -229,7 +229,7 @@ class FestivalAssigner(PeriodicPanchaangaApplier):
     month_type = fest_rule.timing.month_type
     month_num = fest_rule.timing.month_number
     anga_type_str = fest_rule.timing.anga_type
-    target_anga = Anga(index=fest_rule.timing.anga_number, anga_type_id=anga_type_str.upper())
+    target_anga = Anga.get_cached(index=fest_rule.timing.anga_number, anga_type_id=anga_type_str.upper())
     if month_type is None or month_num is None or anga_type_str is None or target_anga is None:
       raise ValueError(str(fest_rule))
     kaala = fest_rule.timing.kaala

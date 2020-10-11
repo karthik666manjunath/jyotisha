@@ -1,5 +1,6 @@
 from numbers import Number
 
+import methodtools
 from timebudget import timebudget
 from jyotisha import names
 from jyotisha.names import NAMES
@@ -60,10 +61,16 @@ AngaType.SOLAR_NAKSH_PADA = AngaType(name='SOLAR_NAKSH_PADA', num_angas=108, wei
 
 
 class Anga(common.JsonObject):
+  @timebudget
   def __init__(self, index, anga_type_id):
     super(Anga, self).__init__()
     self.index = index
     self.anga_type_id = anga_type_id
+
+  @methodtools.lru_cache()
+  @classmethod
+  def get_cached(self, index, anga_type_id):
+    return Anga(index=index, anga_type_id=anga_type_id)
 
   def get_name(self, script="hk"):
     name_dict = NAME_TO_TYPE[self.anga_type_id].names_dict
@@ -93,7 +100,7 @@ class Anga(common.JsonObject):
     """
     if isinstance(other, Number):
       offset_index = (self.index - other - 1) % self.get_type().num_angas + 1
-      return Anga(index=offset_index, anga_type_id=self.anga_type_id)
+      return Anga.get_cached(index=offset_index, anga_type_id=self.anga_type_id)
     if self.anga_type_id != other.anga_type_id: raise ValueError("anga_type mismatch!", (self.anga_type_id, other.anga_type_id))
     num_angas = NAME_TO_TYPE[self.anga_type_id].num_angas
     gap = min((self.index - other.index) % num_angas, (other.index - self.index) % num_angas)
@@ -114,8 +121,9 @@ class Anga(common.JsonObject):
       offset_index = (self.index + other) % self.get_type().num_angas
     else:
       offset_index = (self.index - 1 + other) % self.get_type().num_angas + 1
-    return Anga(index=offset_index, anga_type_id=self.anga_type_id)
+    return Anga.get_cached(index=offset_index, anga_type_id=self.anga_type_id)
 
+  @timebudget
   def __lt__(self, other):
     if isinstance(other, Number):
       return self.index < other
